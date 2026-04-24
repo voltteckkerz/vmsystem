@@ -1,0 +1,13 @@
+# Environments
+.env
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Dependencies (Add yours depending on your language, e.g., node_modules/, venv/, etc.)
+vendor
+node_modules
+.env
+storage/*.key
+public/hot
