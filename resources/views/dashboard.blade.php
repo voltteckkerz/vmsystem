@@ -44,39 +44,15 @@
                     
                     <td>
                         @if($visit->status == 'active')
-                        <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#checkoutModal{{ $visit->id }}">
-                            Check Out
-                        </button>
-
+                            <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#checkoutModal{{ $visit->id }}">
+                                Check Out
+                            </button>
                         @else
                             <span class="text-muted small">Checked out at: <br>{{ \Carbon\Carbon::parse($visit->manual_check_out_time)->format('h:i A') }}</span>
                         @endif
                     </td>
                 </tr>
                 @endforeach
-                {{-- Check Out Modal for this specific visit --}}
-                <div class="modal fade" id="checkoutModal{{ $visit->id }}" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <form action="{{ route('visit.checkout', $visit->id) }}" method="POST">
-                                @csrf
-                                <div class="modal-header">
-                                    <h5 class="modal-title">Confirm Check Out</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <p>Set the check-out time for this visit:</p>
-                                    <input type="datetime-local" class="form-control checkout-time" name="manual_check_out_time" required>
-                                    <small class="text-muted">Defaults to current time. Change if visitor left earlier.</small>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                    <button type="submit" class="btn btn-danger">Confirm Check Out</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
                 
             @endforeach
             
@@ -89,14 +65,60 @@
         </tbody>
     </table>
 </div>
+
+{{-- All Checkout Modals are placed OUTSIDE the table so the browser doesn't break them --}}
+@foreach($liveVisits as $visit)
+    @if($visit->status == 'active')
+    <div class="modal fade" id="checkoutModal{{ $visit->id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <form action="{{ route('visit.checkout', $visit->id) }}" method="POST" class="checkout-form">
+                    @csrf
+                    <input type="hidden" class="checkout-datetime" name="manual_check_out_time">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Confirm Check Out</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body text-center py-4">
+                        <p class="mb-3">Select the check-out time:</p>
+                        <input type="time" class="form-control mx-auto checkout-time" style="max-width: 200px; font-size: 1.5rem; text-align: center;" required>
+                        <small class="text-muted mt-2 d-block">Defaults to current time. Click to change.</small>
+                    </div>
+                    <div class="modal-footer justify-content-center">
+                        <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger px-4">Confirm Check Out</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endif
+@endforeach
+
 <script>
     // When any checkout modal opens, auto-set the time to right now
     document.querySelectorAll('.modal').forEach(modal => {
         modal.addEventListener('show.bs.modal', function() {
             const input = this.querySelector('.checkout-time');
             const now = new Date();
-            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-            input.value = now.toISOString().slice(0,16);
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            input.value = hours + ':' + minutes;
+        });
+    });
+
+    // When checkout form submits, combine today's date + selected time
+    document.querySelectorAll('.checkout-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const timeInput = this.querySelector('.checkout-time');
+            const hiddenInput = this.querySelector('.checkout-datetime');
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            hiddenInput.value = year + '-' + month + '-' + day + 'T' + timeInput.value;
+            this.submit();
         });
     });
 </script>

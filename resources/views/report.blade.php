@@ -2,18 +2,41 @@
 
 @section('content')
 <div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-12">
-            <div class="card shadow-sm border-0" style="border-radius: 10px;">
-                <div class="card-header bg-white border-0 pt-4 text-center">
-                    <h3><b>Reports</b></h3>
-                </div>
-                <div class="card-body p-5">
-                    <p class="lead">This is the Reports page. You can view and generate various reports related to visitors and attendance here.</p>
-                    <p class="text-muted">More features will be added soon. Stay tuned!</p>
-                </div>
-            </div>
-        </div>
-    </div>
+    {{-- ===== VISITOR REPORT ===== --}}
+    <h3>Visitor Report</h3>
+    <table class="table table-striped table-bordered mt-3">
+        <thead class="table-dark">
+            <tr>
+                <th>Name</th>
+                <th>Date</th>
+                <th>Company</th>
+                <th>Time In</th>
+                <th>Time Out</th>
+                <th>Pass No.</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{-- Visitor data rows will go here --}}
+        </tbody>
+    </table>
+
+    <hr class="my-5"> {{-- A visible line to separate the two reports --}}
+
+    {{-- ===== ATTENDANCE REPORT ===== --}}
+    <h3>Attendance Report</h3>
+    <table class="table table-striped table-bordered mt-3">
+        <thead class="table-dark">
+            <tr>
+                <th>Name</th>
+                <th>Date</th>
+                <th>Vehicle No</th>
+                <th>Time In</th>
+                <th>Time Out</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{-- Attendance data rows will go here --}}
+        </tbody>
+    </table>
 </div>
 @endsection

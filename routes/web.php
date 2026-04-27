@@ -8,13 +8,13 @@ Route::get('/', function () {
 
 Route::get('/visitor', [App\Http\Controllers\VisitController::class, 'create'])->name('visitor.index')->middleware('auth');
 
-Route::get('/attendance', function () {
-    return view('attendance');
-})->name('attendance.index');
+// Attendance Routes
+Route::get('/attendance', [App\Http\Controllers\AttendanceController::class, 'index'])->name('attendance.index')->middleware('auth');
+Route::post('/attendance/clock-in', [App\Http\Controllers\AttendanceController::class, 'clockIn'])->name('attendance.clockIn')->middleware('auth');
+Route::post('/attendance/{id}/clock-out', [App\Http\Controllers\AttendanceController::class, 'clockOut'])->name('attendance.clockOut')->middleware('auth');
 
-Route::get('/report', function () {
-    return view('report');
-})->name('report.index');
+
+Route::get('/report', [App\Http\Controllers\ReportController::class, 'index'])->name('report.index')->middleware('auth');
 
 
 Route::get('/dashboard', function () {

@@ -6,18 +6,17 @@
         <div class="col-md-8">
             <div class="card shadow-sm border-0" style="border-radius: 10px;">
                 <div class="card-header bg-white border-0 pt-4 pb-2">
-                    <h4 class="mb-0"><b>Register New Visitor(s)</b></h4>
+                    <h4 class="mb-0"><b>Register Visitor(s)</b></h4>
                 </div>
 
                 <div class="card-body p-4">
                     {{-- The form submits to the /visitor route using POST --}}
                     <form method="POST" action="{{ route('visit.store') }}" id="visitor-form">
                         @csrf
+                        <input type="hidden" id="manual_check_in_time" name="manual_check_in_time">
                         
                         <h6 class="text-primary mt-4"><b>Visit Details</b></h6>
                         <hr class="mt-1 mb-3">
-
-
 
                         <div class="row mb-3">
                             <div class="col-md-6">
@@ -86,18 +85,33 @@
                             <div class="alert alert-danger mt-3">No passes available! You cannot register new visitors.</div>
                         @endif
 
-                        <div class="mb-4">
-                            <label for="manual_check_in_time" class="form-label text-primary mb-0"><h6><b>Check-In Time</b></h6></label>
-                            <input type="datetime-local" class="form-control" id="manual_check_in_time" name="manual_check_in_time" required>
-                            <small class="form-text">Default to current time. Change if visitor arrived earlier.</small>
-                        </div>
-
                         <div class="d-flex justify-content-end mt-4">
                             <a href="/dashboard" class="btn btn-light me-2">Cancel</a>
-                            <button type="submit" class="btn btn-primary px-4" @if($availablePasses->isEmpty()) disabled @endif>Register Visit</button>
+                            <button type="button" class="btn btn-primary px-4" data-bs-toggle="modal" data-bs-target="#checkinModal" @if($availablePasses->isEmpty()) disabled @endif>Register Visit</button>
                         </div>
                     </form>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Check-In Confirmation Modal --}}
+<div class="modal fade" id="checkinModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Check-In</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <p class="mb-3">Select the check-in time:</p>
+                <input type="time" class="form-control mx-auto" id="modal-checkin-time" style="max-width: 200px; font-size: 1.5rem; text-align: center;">
+                <small class="text-muted mt-2 d-block">Defaults to current time. Click to change.</small>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary px-4" id="confirm-checkin-btn">Confirm Check-In</button>
             </div>
         </div>
     </div>
@@ -108,10 +122,29 @@ document.addEventListener('DOMContentLoaded', function() {
     const container = document.getElementById('visitors-container');
     const addBtn = document.getElementById('add-visitor-btn');
     const maxVisitors = 5;
-    const now =new Date();
-    now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); // Adjust for timezone
-    document.getElementById('manual_check_in_time').value = now.toISOString().slice(0,16); // Set default value to current time (without seconds)
-    
+
+    // ===== CHECK-IN MODAL =====
+    const modalTimeInput = document.getElementById('modal-checkin-time');
+
+    // When the modal opens, auto-set the time to right now
+    document.getElementById('checkinModal').addEventListener('show.bs.modal', function() {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        modalTimeInput.value = hours + ':' + minutes;
+    });
+
+    // When user clicks "Confirm Check-In", combine today's date + selected time and submit
+    document.getElementById('confirm-checkin-btn').addEventListener('click', function() {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        const fullDateTime = year + '-' + month + '-' + day + 'T' + modalTimeInput.value;
+        document.getElementById('manual_check_in_time').value = fullDateTime;
+        document.getElementById('visitor-form').submit();
+    });
+
     // Function to update pass dropdowns to prevent duplicates
     function updatePassDropdowns() {
         const selects = document.querySelectorAll('.pass-select');
@@ -184,7 +217,7 @@ document.addEventListener('DOMContentLoaded', function() {
         select.addEventListener('change', updatePassDropdowns);
     });
 
-        // Auto-fill logic using 'focusout' (triggers when user clicks away from NRIC box)
+    // Auto-fill logic using 'focusout' (triggers when user clicks away from NRIC box)
     container.addEventListener('focusout', function(e) {
         // Only trigger if they were typing in an NRIC box
         if (e.target && e.target.name === 'nric_passport[]') {
