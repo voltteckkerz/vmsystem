@@ -36,18 +36,23 @@
 
                     </ul>
 
+                    <!-- CENTER LINKS -->
+                    <?php
+                    $navLinks = [
+                        ['name' => 'Dashboard', 'route' => 'dashboard.index'],
+                        ['name' => 'Visitor', 'route' => 'visitor.index'],
+                        ['name' => 'Attendance', 'route' => 'attendance.index'],
+                        ['name' => 'Reports', 'route' => 'report.index'],
+                    ];
+                    ?>
                     <!-- *** START OF CENTER LINKS *** -->
                     @auth
                     <ul class="navbar-nav mx-auto d-none d-lg-flex">  {{-- Use mx-auto to center it --}}
+                        @foreach($navLinks as $link)
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ route('visitor.index') }}">Visitor</a>
+                            <a class="nav-link" href="{{ route($link['route']) }}">{{$link['name']}}</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ route('attendance.index') }}">Attendance</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ route('report.index') }}">Reports</a>
-                        </li>
+                        @endforeach
                     </ul>
                     @endauth
                     <!-- *** END OF CENTER LINKS *** -->

@@ -22,7 +22,7 @@ Route::get('/dashboard', function () {
     $liveVisits = App\Models\Visit::with(['employee', 'visitors', 'visitors.company'])->orderBy('created_at', 'desc')->get();
 
     return view('dashboard', compact('liveVisits'));
-})->middleware('auth');
+})->name('dashboard.index')->middleware('auth');
 
 Route::post('/visitor', [App\Http\Controllers\VisitController::class, 'store'])->name('visit.store')->middleware('auth');
 Route::post('/visit/{id}/checkout', [App\Http\Controllers\VisitController::class, 'checkout'])->name('visit.checkout')->middleware('auth');
