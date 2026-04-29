@@ -11,6 +11,7 @@
                     <input type="date" class="form-control" name="date" value="{{ $date }}">
                 </div>
                 <button type="submit" class="btn btn-primary px-4">Filter</button>
+                <button type="submit" class="btn btn-primary px-4">Print</button>
             </form>
         </div>
     </div>
