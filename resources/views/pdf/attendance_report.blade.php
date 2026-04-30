@@ -16,6 +16,7 @@
             <tr>
                 <th>#</th>
                 <th>Name</th>
+                <th>Date</th>
                 <th>Vehicle No</th>
                 <th>Time In</th>
                 <th>Time Out</th>
@@ -26,6 +27,7 @@
             <tr>
                 <td>{{ $index + 1 }}</td>
                 <td>{{ $attendance->employee->name }}</td>
+                <td>{{ \Carbon\Carbon::parse($attendance->check_in_time)->format('d/m/Y') }}</td>
                 <td>{{ $attendance->vehicle_plate ?? '-' }}</td>
                 <td>{{ \Carbon\Carbon::parse($attendance->check_in_time)->format('h:i A') }}</td>
                 <td>{{ $attendance->check_out_time ? \Carbon\Carbon::parse($attendance->check_out_time)->format('h:i A') : '-' }}</td>

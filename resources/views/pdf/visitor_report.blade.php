@@ -16,9 +16,11 @@
             <tr>
                 <th>#</th>
                 <th>Name</th>
+                <th>Date</th>
                 <th>Company</th>
                 <th>Time In</th>
                 <th>Time Out</th>
+                <th>Pass</th>
             </tr>
         </thead>
         <tbody>
@@ -28,9 +30,18 @@
                 <tr>
                     <td>{{ $counter++ }}</td>
                     <td>{{ $visitor->name }}</td>
+                    <td>{{ \Carbon\Carbon::parse($visit->manual_check_in_time)->format('d/m/Y') }}</td>
                     <td>{{ $visitor->company->name ?? '-' }}</td>
                     <td>{{ \Carbon\Carbon::parse($visit->manual_check_in_time)->format('h:i A') }}</td>
                     <td>{{ $visit->manual_check_out_time ? \Carbon\Carbon::parse($visit->manual_check_out_time)->format('h:i A') : '-' }}</td>
+                    <td>
+                        @php
+                            $passId = $visitor->pivot->pass_id;
+                            $pass = $passId ? \App\Models\Pass::find($passId) : null;
+                        @endphp
+                        {{ $pass->pass_number ?? '-' }}
+                    </td>
+
                 </tr>
                 @endforeach
             @endforeach
