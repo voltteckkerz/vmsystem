@@ -2,8 +2,10 @@
 
 @section('content')
 <div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
+    <div class="row">
+
+        {{-- ===== LEFT COLUMN: REGISTRATION FORM ===== --}}
+        <div class="col-md-7">
             <div class="card shadow-sm border-0" style="border-radius: 10px;">
                 <div class="card-header bg-white border-0 pt-4 pb-2">
                     <h4 class="mb-0"><b>Register Visitor(s)</b></h4>
@@ -52,8 +54,7 @@
                             <div class="visitor-block border rounded p-3 mb-3 bg-light">
                                 <div class="d-flex justify-content-between">
                                     <h6 class="text-muted mb-3 visitor-number">Visitor 1</h6>
-                                    {{-- Remove button (hidden for the first visitor) --}}
-                                    <button type="button" class="btn-close remove-visitor-btn d-none" aria-label="Close"></button>
+                                    <button type="button" class="btn-close remove-visitor-btn" aria-label="Close"></button>
                                 </div>
                                 <div class="row mb-3">
                                     <div class="col-md-3">
@@ -93,6 +94,47 @@
                 </div>
             </div>
         </div>
+
+        {{-- ===== RIGHT COLUMN: REGISTERED VISITORS ===== --}}
+        <div class="col-md-5">
+            <div class="card shadow-sm border-0" style="border-radius: 10px;">
+                <div class="card-header bg-white border-0 pt-4 pb-2">
+                    <h5 class="mb-3"><b>Registered Visitors</b></h5>
+                    <input type="text" class="form-control" id="visitor-search" placeholder="Search by NRIC or Name...">
+                </div>
+                <div class="card-body p-0" style="max-height: 500px; overflow-y: auto;">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light sticky-top">
+                            <tr>
+                                <th>Name</th>
+                                <th>NRIC</th>
+                                <th>Company</th>
+                            </tr>
+                        </thead>
+                        <tbody id="registered-visitors-list">
+                            @foreach($registeredVisitors as $rv)
+                            <tr class="registered-visitor-row" 
+                                data-nric="{{ $rv->nric_passport }}" 
+                                data-name="{{ $rv->name }}" 
+                                data-company="{{ $rv->company->name ?? '' }}"
+                                style="cursor: pointer; position: relative;">
+                                <td>{{ $rv->name }}</td>
+                                <td>{{ $rv->nric_passport }}</td>
+                                <td>{{ $rv->company->name ?? '-' }}</td>
+                            </tr>
+                            @endforeach
+
+                            @if($registeredVisitors->isEmpty())
+                            <tr>
+                                <td colspan="3" class="text-center text-muted py-3">No registered visitors yet.</td>
+                            </tr>
+                            @endif
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
 
@@ -165,14 +207,26 @@ document.addEventListener('DOMContentLoaded', function() {
     // Function to update visitor numbers
     function updateVisitorNumbers() {
         const blocks = container.querySelectorAll('.visitor-block');
+
+        // Show/hide the empty message
+        let emptyMsg = document.getElementById('no-visitors-msg');
+        if (!emptyMsg) {
+            emptyMsg = document.createElement('div');
+            emptyMsg.id = 'no-visitors-msg';
+            emptyMsg.className = 'text-center text-muted py-4';
+            emptyMsg.innerHTML = 'No visitors added yet. Click <b>+ Add Another Visitor</b> or select from the Registered Visitors list.';
+            container.parentNode.insertBefore(emptyMsg, container.nextSibling);
+        }
+
+        if (blocks.length === 0) {
+            emptyMsg.style.display = '';
+        } else {
+            emptyMsg.style.display = 'none';
+        }
+
         blocks.forEach((block, index) => {
             block.querySelector('.visitor-number').innerText = 'Visitor ' + (index + 1);
-            const removeBtn = block.querySelector('.remove-visitor-btn');
-            if (index === 0) {
-                removeBtn.classList.add('d-none'); // Cannot remove the first visitor
-            } else {
-                removeBtn.classList.remove('d-none');
-            }
+            block.querySelector('.remove-visitor-btn').classList.remove('d-none');
         });
         
         // Disable Add button if limit reached
@@ -183,21 +237,36 @@ document.addEventListener('DOMContentLoaded', function() {
             addBtn.disabled = false;
             addBtn.innerText = '+ Add Another Visitor';
         }
+
+        // Disable Register button if no visitors
+        const registerBtn = document.querySelector('[data-bs-target="#checkinModal"]');
+        if (registerBtn) {
+            registerBtn.disabled = (blocks.length === 0);
+        }
     }
+
+    // Save a template of the first visitor block for cloning later
+    const blockTemplate = container.querySelector('.visitor-block').cloneNode(true);
+    blockTemplate.querySelectorAll('input').forEach(input => input.value = '');
+    blockTemplate.querySelectorAll('select').forEach(select => select.value = '');
+
+    // Remove the first block so the page starts empty
+    container.querySelector('.visitor-block').remove();
+    updateVisitorNumbers();
 
     // Event listener for adding a new visitor
     addBtn.addEventListener('click', function() {
         const blocks = container.querySelectorAll('.visitor-block');
         if (blocks.length >= maxVisitors) return;
 
-        // Clone the first block
-        const newBlock = blocks[0].cloneNode(true);
+        // Clone from the saved template (not from the first block)
+        const newBlock = blockTemplate.cloneNode(true);
         
         // Clear inputs
         newBlock.querySelectorAll('input').forEach(input => input.value = '');
         newBlock.querySelectorAll('select').forEach(select => {
             select.value = '';
-            select.addEventListener('change', updatePassDropdowns); // re-attach event listener
+            select.addEventListener('change', updatePassDropdowns);
         });
         
         // Attach remove event listener
@@ -217,24 +286,30 @@ document.addEventListener('DOMContentLoaded', function() {
         select.addEventListener('change', updatePassDropdowns);
     });
 
-    // Auto-fill logic using 'focusout' (triggers when user clicks away from NRIC box)
+    // Attach remove listener to the first visitor block's close button
+    const firstBlock = container.querySelector('.visitor-block');
+    if (firstBlock) {
+        firstBlock.querySelector('.remove-visitor-btn').addEventListener('click', function() {
+            firstBlock.remove();
+            updateVisitorNumbers();
+            updatePassDropdowns();
+        });
+    }
+
+    // ===== AUTO-FILL from NRIC =====
     container.addEventListener('focusout', function(e) {
-        // Only trigger if they were typing in an NRIC box
         if (e.target && e.target.name === 'nric_passport[]') {
             let nric = e.target.value.trim();
-            if (nric === '') return; // Do nothing if it's empty
+            if (nric === '') return;
 
-            // Find the exact block they are typing in (so we don't accidentally fill Visitor 2's name into Visitor 1's box)
             let block = e.target.closest('.visitor-block');
             let nameInput = block.querySelector('input[name="visitor_name[]"]');
             let companyInput = block.querySelector('input[name="company_name[]"]');
 
-            // Secretly ask our new API Route if this NRIC exists!
             fetch('/api/visitor/' + nric)
                 .then(response => response.json())
                 .then(data => {
                     if (data) {
-                        // Success! Auto-fill the form boxes instantly!
                         nameInput.value = data.name;
                         if (data.company) {
                             companyInput.value = data.company.name;
@@ -243,6 +318,117 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
                 .catch(error => console.log('Visitor not found yet'));
         }
+    });
+
+    // ===== SEARCH FILTER =====
+    document.getElementById('visitor-search').addEventListener('input', function() {
+        const searchValue = this.value.trim().toLowerCase();
+        const rows = document.querySelectorAll('.registered-visitor-row');
+
+        rows.forEach(function(row) {
+            const nric = row.getAttribute('data-nric').toLowerCase();
+            const name = row.getAttribute('data-name').toLowerCase();
+
+            if (nric.includes(searchValue) || name.includes(searchValue)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+
+    // ===== CLICK TO ADD VISITOR =====
+    document.querySelectorAll('.registered-visitor-row').forEach(function(row) {
+        row.addEventListener('click', function(e) {
+            // If already added, do nothing
+            if (this.classList.contains('already-added')) return;
+
+            // Remove any existing popup
+            document.querySelectorAll('.add-popup').forEach(p => p.remove());
+
+            // Get visitor data from the row
+            const name = this.getAttribute('data-name');
+            const nric = this.getAttribute('data-nric');
+            const company = this.getAttribute('data-company');
+            const clickedRow = this;
+
+            // Create the "Add" popup button
+            const popup = document.createElement('span');
+            popup.className = 'add-popup badge bg-success ms-2';
+            popup.style.cssText = 'cursor:pointer; font-size:0.85rem; padding:5px 12px;';
+            popup.innerText = '+ Add';
+
+            // When user clicks the "Add" button
+            popup.addEventListener('click', function(evt) {
+                evt.stopPropagation();
+
+                // Check if this NRIC is already in the form
+                const allNricInputs = document.querySelectorAll('input[name="nric_passport[]"]');
+                for (let i = 0; i < allNricInputs.length; i++) {
+                    if (allNricInputs[i].value.trim() === nric) {
+                        alert('This visitor is already added!');
+                        popup.remove();
+                        return;
+                    }
+                }
+
+                const blocks = document.querySelectorAll('.visitor-block');
+                let targetBlock = null;
+
+                for (let i = 0; i < blocks.length; i++) {
+                    const nricInput = blocks[i].querySelector('input[name="nric_passport[]"]');
+                    if (nricInput.value.trim() === '') {
+                        targetBlock = blocks[i];
+                        break;
+                    }
+                }
+
+                if (!targetBlock) {
+                    const addVisitorBtn = document.getElementById('add-visitor-btn');
+                    if (!addVisitorBtn.disabled) {
+                        addVisitorBtn.click();
+                        const allBlocks = document.querySelectorAll('.visitor-block');
+                        targetBlock = allBlocks[allBlocks.length - 1];
+                    } else {
+                        alert('Maximum 5 visitors reached!');
+                        return;
+                    }
+                }
+
+                // Fill in the visitor data
+                targetBlock.querySelector('input[name="nric_passport[]"]').value = nric;
+                targetBlock.querySelector('input[name="visitor_name[]"]').value = name;
+                targetBlock.querySelector('input[name="company_name[]"]').value = company;
+
+                // Remove the popup
+                popup.remove();
+
+                // Gray out the row so it can't be added again
+                clickedRow.classList.add('already-added');
+                clickedRow.style.opacity = '0.4';
+                clickedRow.style.pointerEvents = 'none';
+
+                // Flash the filled block green briefly
+                targetBlock.style.transition = 'background-color 0.3s';
+                targetBlock.style.backgroundColor = '#d4edda';
+                setTimeout(() => { targetBlock.style.backgroundColor = ''; }, 1000);
+
+                // When this visitor block is removed, re-enable the row
+                const removeBtn = targetBlock.querySelector('.remove-visitor-btn');
+                if (removeBtn) {
+                    const originalHandler = removeBtn.onclick;
+                    removeBtn.addEventListener('click', function() {
+                        clickedRow.classList.remove('already-added');
+                        clickedRow.style.opacity = '1';
+                        clickedRow.style.pointerEvents = '';
+                    });
+                }
+            });
+
+            // Append the popup next to the name
+            const nameCell = this.querySelector('td');
+            nameCell.appendChild(popup);
+        });
     });
 
 });

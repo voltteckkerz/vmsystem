@@ -15,8 +15,9 @@ class VisitController extends Controller
         $companies = Company::all();
         $employees = Employee::all();
         $availablePasses = Pass::where('status', 'available')->get();
+        $registeredVisitors = Visitor::with('company')->orderBy('name')->get();
 
-        return view('visitor', compact('companies', 'employees', 'availablePasses'));
+        return view('visitor', compact('companies', 'employees', 'availablePasses', 'registeredVisitors'));
     }
 
     public function store(Request $request)
