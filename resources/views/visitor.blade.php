@@ -44,7 +44,7 @@
                         <div class="d-flex justify-content-between align-items-end mt-5 mb-2">
                             <h6 class="text-primary mb-0"><b>Visitor Details</b></h6>
                             <button type="button" class="btn btn-sm btn-outline-primary" id="add-visitor-btn">
-                                + Add Another Visitor
+                                + Add Visitor
                             </button>
                         </div>
                         <hr class="mt-1 mb-3">
@@ -214,7 +214,7 @@ document.addEventListener('DOMContentLoaded', function() {
             emptyMsg = document.createElement('div');
             emptyMsg.id = 'no-visitors-msg';
             emptyMsg.className = 'text-center text-muted py-4';
-            emptyMsg.innerHTML = 'No visitors added yet. Click <b>+ Add Another Visitor</b> or select from the Registered Visitors list.';
+            emptyMsg.innerHTML = 'No visitors added yet. Click <b>+ Add Visitor</b> or select from the Registered Visitors list.';
             container.parentNode.insertBefore(emptyMsg, container.nextSibling);
         }
 
@@ -235,7 +235,7 @@ document.addEventListener('DOMContentLoaded', function() {
             addBtn.innerText = 'Max 5 Visitors Reached';
         } else {
             addBtn.disabled = false;
-            addBtn.innerText = '+ Add Another Visitor';
+            addBtn.innerText = '+ Add Visitor';
         }
 
         // Disable Register button if no visitors
@@ -295,30 +295,6 @@ document.addEventListener('DOMContentLoaded', function() {
             updatePassDropdowns();
         });
     }
-
-    // ===== AUTO-FILL from NRIC =====
-    container.addEventListener('focusout', function(e) {
-        if (e.target && e.target.name === 'nric_passport[]') {
-            let nric = e.target.value.trim();
-            if (nric === '') return;
-
-            let block = e.target.closest('.visitor-block');
-            let nameInput = block.querySelector('input[name="visitor_name[]"]');
-            let companyInput = block.querySelector('input[name="company_name[]"]');
-
-            fetch('/api/visitor/' + nric)
-                .then(response => response.json())
-                .then(data => {
-                    if (data) {
-                        nameInput.value = data.name;
-                        if (data.company) {
-                            companyInput.value = data.company.name;
-                        }
-                    }
-                })
-                .catch(error => console.log('Visitor not found yet'));
-        }
-    });
 
     // ===== SEARCH FILTER =====
     document.getElementById('visitor-search').addEventListener('input', function() {
