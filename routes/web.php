@@ -16,6 +16,9 @@ Route::post('/attendance/{id}/clock-out', [App\Http\Controllers\AttendanceContro
 // Report Routes
 Route::get('/report', [App\Http\Controllers\ReportController::class, 'index'])->name('report.index')->middleware('auth');
 
+Route::get('/report/print', [App\Http\Controllers\ReportController::class,'print'])->name('report.print')->middleware('auth');
+
+
 // Dashboard Route
 Route::get('/dashboard', function () {
     // Fetch all visits, newest first
@@ -31,6 +34,8 @@ Route::post('/visit/{id}/checkout', [App\Http\Controllers\VisitController::class
 Route::get('/api/visitor/{nric}',
     [App\Http\Controllers\VisitController::class, 'findVisitor'
     ]);
+
+
 
 
 Auth::routes();

@@ -5,13 +5,17 @@
     {{-- ===== DATE FILTER ===== --}}
     <div class="card shadow-sm border-0 mb-4" style="border-radius:10px;">
         <div class="card-body">
-            <form method="GET" action="{{ route('report.index') }}" class="d-flex align-items-end gap-3">
+            <form method="GET" action="{{ route('report.index') }}" class="d-flex align-items-end gap-3 w-100">
                 <div>
                     <label class="form-label text-muted"><b>Select Date</b></label>
                     <input type="date" class="form-control" name="date" value="{{ $date }}">
                 </div>
                 <button type="submit" class="btn btn-primary px-4">Filter</button>
-                <button type="submit" class="btn btn-primary px-4">Print</button>
+                {{-- Print Button (target="blank" opens in a new tab!) --}}
+                <div class="ms-auto">
+                    <a href="{{ route('report.print', ['type' => 'visitor', 'date' => $date] ) }}" target="_blank" class="btn btn-success">Print Visitor PDF</a>
+                    <a href="{{ route('report.print', ['type' => 'attendance', 'date' => $date] ) }}" target="_blank" class="btn btn-info">Print Attendance PDF</a>
+                </div>
             </form>
         </div>
     </div>
