@@ -14,19 +14,24 @@ class EmployeeSeeder extends Seeder
      */
     public function run(): void
     {
-        //Employees
-        $ahmad = Employee::create(['name' => 'Ahmad', 'status' => 'active']);
-        $ali = Employee::create(['name' => 'Ali', 'status' => 'active']);
-        $sara = Employee::create(['name' => 'Sara', 'status' => 'active']);
-            
-        //Vehicles
-        $v1 = Vehicle::create(['plate_number' => 'ABC 123', 'owner_type' => 'employee']);
-        $v2 = Vehicle::create(['plate_number' => 'XYZ 789', 'owner_type' => 'employee']);
-        $v3 = Vehicle::create(['plate_number' => 'LMN 456', 'owner_type' => 'employee']);
-            
-        //Assign vehicles to employees
-        $ahmad->vehicles()->attach([$v1->id, $v2->id]);
-        $sara->vehicles()->attach([$v3->id]);
+        // Employees with their vehicles
+        $data = [
+            'Ahmad'  => ['ABC 123', 'XYZ 789'],
+            'Ali'    => [],
+            'Sara'   => ['LMN 456'],
+            'Zainab' => ['PQR 012'],
+            'Omar'   => ['DEF 345', 'GHI 678'],
+        ];
+
+        foreach ($data as $name => $plates) {
+            $employee = Employee::create(['name' => $name, 'status' => 'active']);
+
+            foreach ($plates as $plate) {
+                $vehicle = Vehicle::create(['plate_number' => $plate, 'owner_type' => 'employee']);
+                $employee->vehicles()->attach($vehicle->id);
+            }
+        }
+
 
 
     }

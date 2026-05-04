@@ -10,6 +10,10 @@
                     <label class="form-label text-muted"><b>Select Date</b></label>
                     <input type="date" class="form-control" name="date" value="{{ $date }}">
                 </div>
+                <div>
+                    <label class="form-label text-muted"><b>Search Name</b></label>
+                    <input type="text" class="form-control" name="name" value="{{ request('name') }}" plaveholder="e.g. John Doe">
+                </div>
                 <button type="submit" class="btn btn-primary px-4">Filter</button>
                 {{-- Print Button (target="blank" opens in a new tab!) --}}
                 <div class="ms-auto">

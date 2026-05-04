@@ -24,26 +24,21 @@
             </tr>
         </thead>
         <tbody>
-            @php $counter = 1; @endphp
-            @foreach($data as $visit)
-                @foreach($visit->visitors as $visitor)
+            @foreach($data as $index => $row)
                 <tr>
-                    <td>{{ $counter++ }}</td>
-                    <td>{{ $visitor->name }}</td>
-                    <td>{{ \Carbon\Carbon::parse($visit->manual_check_in_time)->format('d/m/Y') }}</td>
-                    <td>{{ $visitor->company->name ?? '-' }}</td>
-                    <td>{{ \Carbon\Carbon::parse($visit->manual_check_in_time)->format('h:i A') }}</td>
-                    <td>{{ $visit->manual_check_out_time ? \Carbon\Carbon::parse($visit->manual_check_out_time)->format('h:i A') : '-' }}</td>
+                    <td>{{ $index + 1 }}</td>
+                    <td>{{ $row->name }}</td>
+                    <td>{{ \Carbon\Carbon::parse($row->date)->format('d/m/Y') }}</td>
+                    <td>{{ $row->company }}</td>
+                    <td>{{ \Carbon\Carbon::parse($row->time_in)->format('h:i A') }}</td>
+                    <td>{{ $row->time_out ? \Carbon\Carbon::parse($row->time_out)->format('h:i A') : '-' }}</td>
                     <td>
                         @php
-                            $passId = $visitor->pivot->pass_id;
-                            $pass = $passId ? \App\Models\Pass::find($passId) : null;
+                            $pass = $row->pass_id ? \App\Models\Pass::find($row->pass_id) : null;
                         @endphp
                         {{ $pass->pass_number ?? '-' }}
                     </td>
-
                 </tr>
-                @endforeach
             @endforeach
         </tbody>
     </table>
