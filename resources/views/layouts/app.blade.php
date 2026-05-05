@@ -47,7 +47,7 @@
                     ?>
                     <!-- *** START OF CENTER LINKS *** -->
                     @auth
-                    <ul class="navbar-nav mx-auto d-none d-lg-flex">  {{-- Use mx-auto to center it --}}
+                    <ul class="navbar-nav mx-auto">  {{-- Use mx-auto to center it --}}
                         @foreach($navLinks as $link)
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route($link['route']) }}">{{$link['name']}}</a>

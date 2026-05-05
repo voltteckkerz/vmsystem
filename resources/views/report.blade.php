@@ -12,8 +12,9 @@
                 </div>
                 <div>
                     <label class="form-label text-muted"><b>Search Name</b></label>
-                    <input type="text" class="form-control" name="name" value="{{ request('name') }}" plaveholder="e.g. John Doe">
+                    <input type="text" class="form-control" name="name" value="{{ request('name') }}" placeholder="e.g. John Doe">
                 </div>
+                <input type="hidden" name="tab" id="activeTab" value="{{ request('tab', 'visitor') }}">
                 <button type="submit" class="btn btn-primary px-4">Filter</button>
                 {{-- Print Button (target="blank" opens in a new tab!) --}}
                 <div class="ms-auto">
@@ -27,17 +28,17 @@
     {{-- ===== TABS ===== --}}
     <ul class="nav nav-tabs" role="tablist">
         <li class="nav-item" role="presentation">
-            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#visitor-tab" type="button"><b>Visit Report</b></button>
+            <button class="nav-link {{ request('tab', 'visitor') === 'visitor' ? 'active' : '' }}" data-bs-toggle="tab" data-bs-target="#visitor-tab" type="button"><b>Visit Report</b></button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#attendance-tab" type="button"><b>Attendance Report</b></button>
+            <button class="nav-link {{ request('tab', 'visitor') === 'attendance' ? 'active' : '' }}" data-bs-toggle="tab" data-bs-target="#attendance-tab" type="button"><b>Attendance Report</b></button>
         </li>
     </ul>
 
     <div class="tab-content mt-3">
 
     {{-- ===== Table 2: Visitor Report ===== --}}
-    <div class="tab-pane fade show active" id="visitor-tab">
+    <div class="tab-pane fade {{ request('tab', 'visitor') === 'visitor' ? 'show active' : '' }}" id="visitor-tab">
         <table class="table table-striped table-bordered">
             <thead class="table-dark">
                 <tr>
@@ -88,7 +89,7 @@
     </div>
 
     {{-- ===== Table 2: Attendance Report ===== --}}
-    <div class="tab-pane fade" id="attendance-tab">
+    <div class="tab-pane fade {{ request('tab', 'visitor') === 'attendance' ? 'show active' : '' }}" id="attendance-tab">
         <table class="table table-striped table-bordered">
             <thead class="table-dark">
                 <tr>
@@ -127,4 +128,13 @@
         </table>
     </div>
 </div>
+
+<script>
+    document.querySelectorAll('[data-bs-toggle="tab"]').forEach(button => {
+        button.addEventListener('shown.bs.tab', function (e) {
+            const tab = e.target.getAttribute('data-bs-target').replace('-tab', '').replace('#', '');
+            document.getElementById('activeTab').value = tab;
+        });
+    });
+</script>
 @endsection
