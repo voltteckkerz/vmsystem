@@ -17,26 +17,50 @@
             <h4 class="mb-0"><b>Employee List</b></h4>
         </div>
         <div class="card-body">
-            <table class="table table-striped table-bordered">
-                <thead class="table-dark">
-                    <tr>
-                        <th>#</th>
-                        <th>Name</th>
-                        <th>Car Plate 1</th>
-                        <th>Car Plate 2</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($employees as $index => $employee)
-                    <tr class="employee-row" data-id="{{ $employee->id }}" data-name="{{ $employee->name }}" data-vehicles='@json($employee->vehicles->pluck("plate_number"))' style="cursor: pointer;">
+            <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                <table class="table table-striped table-bordered mb-0">
+                    <thead class="table-dark" style="position: sticky; top: 0; z-index: 1;">
+                        <tr>
+                            <th>#</th>
+                            <th>Name</th>
+                            <th>Car Plate 1</th>
+                            <th>Car Plate 2</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($employees as $index => $employee)
+                    @php
+                        // Check if this specific employee is currently clocked in
+                        $isClockedIn = $liveAttendances->where('employee_id', $employee->id)->where('status', 'clocked_in')->isNotEmpty();
+                    @endphp
+                    
+                    {{-- If clocked in, remove 'employee-row' class and make it unclickable --}}
+                    <tr class="{{ $isClockedIn ? '' : 'employee-row' }}" 
+                        @if(!$isClockedIn)
+                            data-id="{{ $employee->id }}" 
+                            data-name="{{ $employee->name }}" 
+                            data-vehicles='@json($employee->vehicles->pluck("plate_number"))' 
+                            style="cursor: pointer;"
+                        @else
+                            {{-- Grey out and disable clicks --}}
+                            style="opacity: 0.5; pointer-events: none;"
+                        @endif>
+                        
                         <td>{{ $index + 1 }}</td>
-                        <td>{{ $employee->name }}</td>
+                        <td>
+                            {{ $employee->name }}
+                            {{-- Optional: Add a small badge next to their name --}}
+                            @if($isClockedIn)
+                                <span class="badge bg-secondary ms-1">Clocked In</span>
+                            @endif
+                        </td>
                         <td>{{ $employee->vehicles[0]->plate_number ?? '-' }}</td>
                         <td>{{ $employee->vehicles[1]->plate_number ?? '-' }}</td>
                     </tr>
-                    @endforeach
-                </tbody>
-            </table>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
 
             {{-- Selected Display + Vehicle Selection + Buttons --}}
             <div class="mt-3 p-3 bg-light rounded">
@@ -80,8 +104,9 @@
             <h4 class="mb-0"><b>Live Attendance Status</b></h4>
         </div>
         <div class="card-body">
-            <table class="table table-striped table-bordered">
-                <thead class="table-dark">
+            <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+            <table class="table table-striped table-bordered mb-0">
+                <thead class="table-dark" style="position: sticky; top: 0; z-index: 1;">
                     <tr>
                         <th>Employee Name</th>
                         <th>Vehicle Plate</th>

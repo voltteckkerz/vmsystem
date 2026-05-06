@@ -38,7 +38,7 @@ Route::get('/api/visitor/{nric}',
 
 
 
-Auth::routes();
+Auth::routes(['register' => false, 'reset' => false]);
 
 Route::get('/home', function () {
     return redirect('/dashboard');
