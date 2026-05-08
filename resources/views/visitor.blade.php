@@ -97,14 +97,15 @@
 
         {{-- ===== RIGHT COLUMN: REGISTERED VISITORS ===== --}}
         <div class="col-md-5">
-            <div class="card shadow-sm border-0" style="border-radius: 10px;">
+            <div class="card shadow-sm border-0 mb-4" style="border-radius: 10px;">
                 <div class="card-header bg-white border-0 pt-4 pb-2">
                     <h5 class="mb-3"><b>Registered Visitors</b></h5>
                     <input type="text" class="form-control" id="visitor-search" placeholder="Search by NRIC or Name...">
                 </div>
-                <div class="card-body p-0" style="max-height: 500px; overflow-y: auto;">
+                <div class="card-body p-0">
+                <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
                     <table class="table table-hover mb-0">
-                        <thead class="table-light sticky-top">
+                        <thead class="table-light" style="position: sticky; top: 0; z-index: 1;">
                             <tr>
                                 <th>Name</th>
                                 <th>NRIC</th>

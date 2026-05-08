@@ -18,6 +18,15 @@
  <link rel="stylesheet" href="{{ asset('css/app.css') }}">
  <!-- Scripts -->
 <script src="{{ asset('js/app.js') }}" defer></script>
+
+    <style>
+        .nav-active {
+            background-color: rgba(0, 0, 0, 0.08);
+            border-radius: 8px;
+            font-weight: 600;
+            color: #005eeb !important;
+        }
+    </style>
 </head>
 <body>
     <div id="app">
@@ -50,7 +59,7 @@
                     <ul class="navbar-nav mx-auto">  {{-- Use mx-auto to center it --}}
                         @foreach($navLinks as $link)
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ route($link['route']) }}">{{$link['name']}}</a>
+                            <a class="nav-link {{ request()->routeIs($link['route']) ? 'nav-active' : '' }}" href="{{ route($link['route']) }}">{{$link['name']}}</a>
                         </li>
                         @endforeach
                     </ul>

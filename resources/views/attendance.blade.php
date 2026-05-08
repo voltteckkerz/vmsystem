@@ -18,7 +18,7 @@
         </div>
         <div class="card-body">
             <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
-                <table class="table table-striped table-bordered mb-0">
+                <table class="table table-hover mb-0">
                     <thead class="table-dark" style="position: sticky; top: 0; z-index: 1;">
                         <tr>
                             <th>#</th>
