@@ -29,8 +29,9 @@
         </div>
         <div class="card-body">
             <p class="text-muted">
-                Upload a CSV file to import old visitor records into the system.<br>
-                Only data from the <strong>past 1 month</strong> is allowed. All 8 columns are required.
+                Upload a CSV or Excel file to import old visitor records into the system.<br>
+                Supported formats: <strong>.csv</strong>, <strong>.xlsx</strong>, <strong>.xls</strong><br>
+                Only data from the <strong>past 1 month</strong> is allowed. All 9 columns are required.
             </p>
 
             <div class="mb-4">
@@ -43,8 +44,8 @@
                 @csrf
                 <div class="row align-items-end">
                     <div class="col-md-6">
-                        <label class="form-label text-muted"><b>Select CSV File</b></label>
-                        <input type="file" class="form-control" name="csv_file" accept=".csv" required>
+                        <label class="form-label text-muted"><b>Select File (CSV or Excel)</b></label>
+                        <input type="file" class="form-control" name="csv_file" accept=".csv,.xlsx,.xls" required>
                     </div>
                     <div class="col-md-3">
                         <button type="submit" class="btn btn-primary px-4">Upload & Import</button>

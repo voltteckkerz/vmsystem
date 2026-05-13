@@ -44,30 +44,45 @@ class ImportController extends Controller
         }
 
         $request->validate([
-            'csv_file' => 'required|file|mimes:csv,txt|max:2048',
+            'csv_file' => 'required|file|mimes:csv,txt,xlsx,xls|max:2048',
         ]);
 
         $file = $request->file('csv_file');
-        $rows = array_map('str_getcsv', file($file->getRealPath()));
+        $extension = strtolower($file->getClientOriginalExtension());
+
+        // Read file into rows array based on format
+        if ($extension === 'xlsx' || $extension === 'xls') {
+            // Use PhpSpreadsheet for Excel files
+            $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file->getRealPath());
+            $sheet = $spreadsheet->getActiveSheet();
+            $rows = [];
+            foreach ($sheet->toArray() as $row) {
+                $rows[] = array_map(fn($cell) => trim((string) $cell), $row);
+            }
+        } else {
+            // CSV
+            $rows = array_map('str_getcsv', file($file->getRealPath()));
+            $rows = array_map(fn($row) => array_map('trim', $row), $rows);
+        }
 
         // First row is the header
-        $header = array_map('trim', array_shift($rows));
+        $header = array_shift($rows);
 
         // Check if all required columns exist in header
         $missing = array_diff(self::REQUIRED_COLUMNS, $header);
         if (!empty($missing)) {
-            return redirect()->back()->with('error', 'Missing columns in CSV: ' . implode(', ', $missing));
+            return redirect()->back()->with('error', 'Missing columns in file: ' . implode(', ', $missing));
         }
 
         // Remove empty rows
         $rows = array_filter($rows, fn($row) => count(array_filter($row)) > 0);
 
         if (empty($rows)) {
-            return redirect()->back()->with('error', 'CSV file is empty (no data rows found).');
+            return redirect()->back()->with('error', 'File is empty (no data rows found).');
         }
 
         // Map each row to an associative array using the header
-        $data = array_map(fn($row) => array_combine($header, array_map('trim', $row)), $rows);
+        $data = array_map(fn($row) => array_combine($header, $row), $rows);
 
         // Validate all rows first
         $errors = [];
