@@ -297,6 +297,42 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // ===== COMPANY LOCK =====
+    let lockedCompany = null;
+
+    function updateCompanyFilter() {
+        // Check what company is currently in the form
+        const companyInputs = document.querySelectorAll('input[name="company_name[]"]');
+        let activeCompany = null;
+
+        companyInputs.forEach(input => {
+            if (input.value.trim() !== '') {
+                activeCompany = input.value.trim();
+            }
+        });
+
+        lockedCompany = activeCompany;
+
+        // Update the registered visitors list
+        document.querySelectorAll('.registered-visitor-row').forEach(row => {
+            if (row.classList.contains('already-added')) return; // skip already-added rows
+
+            const rowCompany = row.getAttribute('data-company');
+
+            if (lockedCompany && rowCompany !== lockedCompany) {
+                // Different company — grey out and disable
+                row.classList.add('company-locked');
+                row.style.opacity = '0.3';
+                row.style.pointerEvents = 'none';
+            } else {
+                // Same company or no lock — enable
+                row.classList.remove('company-locked');
+                row.style.opacity = '';
+                row.style.pointerEvents = '';
+            }
+        });
+    }
+
     // ===== SEARCH FILTER =====
     document.getElementById('visitor-search').addEventListener('input', function() {
         const searchValue = this.value.trim().toLowerCase();
@@ -317,8 +353,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // ===== CLICK TO ADD VISITOR =====
     document.querySelectorAll('.registered-visitor-row').forEach(function(row) {
         row.addEventListener('click', function(e) {
-            // If already added, do nothing
+            // If already added or company-locked, do nothing
             if (this.classList.contains('already-added')) return;
+            if (this.classList.contains('company-locked')) return;
 
             // Remove any existing popup
             document.querySelectorAll('.add-popup').forEach(p => p.remove());
@@ -390,14 +427,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 targetBlock.style.backgroundColor = '#d4edda';
                 setTimeout(() => { targetBlock.style.backgroundColor = ''; }, 1000);
 
+                // Lock company filter after adding
+                updateCompanyFilter();
+
                 // When this visitor block is removed, re-enable the row
                 const removeBtn = targetBlock.querySelector('.remove-visitor-btn');
                 if (removeBtn) {
-                    const originalHandler = removeBtn.onclick;
                     removeBtn.addEventListener('click', function() {
                         clickedRow.classList.remove('already-added');
                         clickedRow.style.opacity = '1';
                         clickedRow.style.pointerEvents = '';
+                        // Re-check company lock after removal
+                        setTimeout(updateCompanyFilter, 50);
                     });
                 }
             });

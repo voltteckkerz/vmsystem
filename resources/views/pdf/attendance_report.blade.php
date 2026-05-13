@@ -10,7 +10,8 @@
     </style>
 </head>
 <body>
-    <h2>Employee Attendance Report ({{ \Carbon\Carbon::parse($date)->format('d/m/Y') }})</h2>
+    <h2>Employee Attendance Report</h2>
+    <p>From: {{ \Carbon\Carbon::parse($from_date)->format('d/m/Y') }} &mdash; To: {{ \Carbon\Carbon::parse($to_date)->format('d/m/Y') }}</p>
     <table>
         <thead>
             <tr>

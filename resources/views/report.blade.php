@@ -2,13 +2,17 @@
 
 @section('content')
 <div class="container">
-    {{-- ===== DATE FILTER ===== --}}
+    {{-- ===== DATE RANGE FILTER ===== --}}
     <div class="card shadow-sm border-0 mb-4" style="border-radius:10px;">
         <div class="card-body">
-            <form method="GET" action="{{ route('report.index') }}" class="d-flex align-items-end gap-3 w-100">
+            <form method="GET" action="{{ route('report.index') }}" class="d-flex align-items-end gap-3 flex-wrap w-100">
                 <div>
-                    <label class="form-label text-muted"><b>Select Date</b></label>
-                    <input type="date" class="form-control" name="date" value="{{ $date }}">
+                    <label class="form-label text-muted"><b>From Date</b></label>
+                    <input type="date" class="form-control" name="from_date" value="{{ $from_date }}">
+                </div>
+                <div>
+                    <label class="form-label text-muted"><b>To Date</b></label>
+                    <input type="date" class="form-control" name="to_date" value="{{ $to_date }}">
                 </div>
                 <div>
                     <label class="form-label text-muted"><b>Search Name</b></label>
@@ -16,10 +20,10 @@
                 </div>
                 <input type="hidden" name="tab" id="activeTab" value="{{ request('tab', 'visitor') }}">
                 <button type="submit" class="btn btn-primary px-4">Filter</button>
-                {{-- Print Button (target="blank" opens in a new tab!) --}}
+                {{-- Print Buttons --}}
                 <div class="ms-auto">
-                    <a href="{{ route('report.print', ['filename' => 'Visitor_Report_'.$date.'.pdf', 'type' => 'visitor', 'date' => $date]) }}" target="_blank" class="btn btn-warning">Print Visitor</a>
-                    <a href="{{ route('report.print', ['filename' => 'Attendance_Report_'.$date.'.pdf', 'type' => 'attendance', 'date' => $date]) }}" target="_blank" class="btn btn-warning">Print Attendance</a>
+                    <a href="{{ route('report.print', ['filename' => 'Visitor_Report.pdf', 'type' => 'visitor', 'from_date' => $from_date, 'to_date' => $to_date]) }}" target="_blank" class="btn btn-warning">Print Visitor</a>
+                    <a href="{{ route('report.print', ['filename' => 'Attendance_Report.pdf', 'type' => 'attendance', 'from_date' => $from_date, 'to_date' => $to_date]) }}" target="_blank" class="btn btn-warning">Print Attendance</a>
                 </div>
             </form>
         </div>
@@ -37,7 +41,7 @@
 
     <div class="tab-content mt-3">
 
-    {{-- ===== Table 2: Visitor Report ===== --}}
+    {{-- ===== Table 1: Visitor Report ===== --}}
     <div class="tab-pane fade {{ request('tab', 'visitor') === 'visitor' ? 'show active' : '' }}" id="visitor-tab">
         <table class="table table-striped table-bordered">
             <thead class="table-dark">
@@ -58,7 +62,7 @@
                     <tr>
                         <td>{{ $counter++ }}</td>
                         <td>{{ $visitor->name}}</td>
-                        <td>{{ \Carbon\Carbon::parse($visit->date)->format('d/m/Y') }}</td>
+                        <td>{{ \Carbon\Carbon::parse($visit->manual_check_in_time)->format('d/m/Y') }}</td>
                         <td>{{ $visitor->company->name ?? '_'}}</td>
                         <td>{{ \Carbon\Carbon::parse($visit->manual_check_in_time)->format('h:i A') }}</td>
                         <td>
@@ -81,7 +85,7 @@
 
                 @if($visits->isEmpty())
                 <tr>
-                    <td colspan="7" class="text-center">No visitor records for this date.</td>
+                    <td colspan="7" class="text-center">No visitor records for this date range.</td>
                 </tr>
                 @endif
             </tbody>
@@ -106,7 +110,7 @@
                 <tr>
                     <td>{{ $index + 1 }}</td>
                     <td>{{ $attendance->employee->name }}</td>
-                    <td>{{ \Carbon\Carbon::parse($attendance->date)->format('d/m/Y') }}</td>
+                    <td>{{ \Carbon\Carbon::parse($attendance->check_in_time)->format('d/m/Y') }}</td>
                     <td>{{ $attendance->vehicle_plate ?? '-' }}</td>
                     <td>{{ \Carbon\Carbon::parse($attendance->check_in_time)->format('h:i A') }}</td>
                     <td>
@@ -121,7 +125,7 @@
 
                 @if($attendances->isEmpty())
                 <tr>
-                    <td colspan="6" class="text-center">No attendance records for this date.</td>
+                    <td colspan="6" class="text-center">No attendance records for this date range.</td>
                 </tr>
                 @endif
             </tbody>
