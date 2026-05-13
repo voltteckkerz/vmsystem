@@ -121,6 +121,7 @@
                         @if($attendance->status == 'clocked_in') 
                             data-id="{{ $attendance->id }}" 
                             data-name="{{ $attendance->employee->name }}" 
+                            data-checkin="{{ \Carbon\Carbon::parse($attendance->check_in_time)->format('H:i') }}"
                             style="cursor: pointer;" 
                         @endif>
                         <td>{{ $attendance->employee->name }}</td>
@@ -275,6 +276,9 @@
             // Set attendance data
             document.getElementById('selected-attendance-id').value = this.dataset.id;
             document.getElementById('selected-display').textContent = this.dataset.name;
+
+            // Store check-in time so modal can set the min limit
+            document.getElementById('clockOutModal').dataset.checkin = this.dataset.checkin;
             
             // Enable Clock Out, disable Clock In
             document.getElementById('clockout-btn').disabled = false;
@@ -304,7 +308,14 @@
     document.getElementById('clockOutModal').addEventListener('show.bs.modal', function() {
         document.getElementById('modal-clockout-name').textContent = document.getElementById('selected-display').textContent;
         const now = new Date();
-        document.getElementById('modal-clockout-time').value = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+        const timeInput = document.getElementById('modal-clockout-time');
+        timeInput.value = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+
+        // Set minimum time to check-in time so user can't pick an earlier time
+        const checkin = this.dataset.checkin;
+        if (checkin) {
+            timeInput.min = checkin;
+        }
     });
 
     document.getElementById('confirm-clockout-btn').addEventListener('click', function() {

@@ -77,6 +77,12 @@ class VisitController extends Controller
     public function checkout(Request $request, $id)
     {
         $visit = Visit::findOrFail($id);
+
+        // Reject if checkout time is before or equal to check-in time
+        if ($request->manual_check_out_time <= $visit->manual_check_in_time) {
+            return redirect()->back()->with('error', 'Check-out time cannot be before or equal to check-in time.');
+        }
+
         $visit->status = 'completed';
         $visit->manual_check_out_time = $request->manual_check_out_time;
         $visit->save();

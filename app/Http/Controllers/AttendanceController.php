@@ -52,6 +52,12 @@ class AttendanceController extends Controller
     public function clockOut(Request $request, $id)
     {
         $attendance = Attendance::findOrFail($id);
+
+        // Reject if clock-out time is before or equal to clock-in time
+        if ($request->clock_out_time <= $attendance->check_in_time) {
+            return redirect()->back()->with('error', 'Clock-out time cannot be before or equal to clock-in time.');
+        }
+
         $attendance->check_out_time = $request->clock_out_time;
         $attendance->status = 'clocked_out';
         $attendance->save();

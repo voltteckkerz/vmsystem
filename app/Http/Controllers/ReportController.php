@@ -51,7 +51,7 @@ class ReportController extends Controller
                 return view('report', compact('visits', 'attendances', 'date'));
                 
     }
-        public function print(Request $request)
+        public function print(Request $request, string $filename)
     {
         $date = $request->input('date', now()->toDateString());
         $type = $request->input('type');
@@ -86,7 +86,12 @@ class ReportController extends Controller
             $filename = "Attendance_Report_{$date}.pdf";
         }
 
-        return Pdf::loadView($view, compact('data', 'date'))->stream($filename);
+        $pdf = Pdf::loadView($view, compact('data', 'date'));
+
+        return response($pdf->output(), 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $filename . '"',
+        ]);
     }
 
 }

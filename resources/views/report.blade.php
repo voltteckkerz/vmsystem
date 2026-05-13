@@ -18,8 +18,8 @@
                 <button type="submit" class="btn btn-primary px-4">Filter</button>
                 {{-- Print Button (target="blank" opens in a new tab!) --}}
                 <div class="ms-auto">
-                    <a href="{{ route('report.print', ['type' => 'visitor', 'date' => $date] ) }}" target="_blank" class="btn btn-warning">Print Visitor</a>
-                    <a href="{{ route('report.print', ['type' => 'attendance', 'date' => $date] ) }}" target="_blank" class="btn btn-warning">Print Attendance</a>
+                    <a href="{{ route('report.print', ['filename' => 'Visitor_Report_'.$date.'.pdf', 'type' => 'visitor', 'date' => $date]) }}" target="_blank" class="btn btn-warning">Print Visitor</a>
+                    <a href="{{ route('report.print', ['filename' => 'Attendance_Report_'.$date.'.pdf', 'type' => 'attendance', 'date' => $date]) }}" target="_blank" class="btn btn-warning">Print Attendance</a>
                 </div>
             </form>
         </div>

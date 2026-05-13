@@ -24,7 +24,7 @@
                 @foreach($visit->visitors as $visitor)
                 <tr>
                     {{-- Get the pass number from the pivot table! --}}
-                    <td><span class="badge bg-primary">{{ App\Models\Pass::find($visitor->pivot->pass_id)->pass_number }}</span></td>
+                    <td><span class="badge bg-primary">{{ $visitor->pivot->pass_id ? App\Models\Pass::find($visitor->pivot->pass_id)->pass_number : 'N/A' }}</span></td>
                     
                     <td>{{ $visitor->name }} <br><small class="text-muted">{{ $visitor->nric_passport }}</small></td>
                     <td>{{ $visitor->company->name }}</td>
@@ -44,7 +44,8 @@
                     
                     <td>
                         @if($visit->status == 'active')
-                            <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#checkoutModal{{ $visit->id }}">
+                            <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#checkoutModal{{ $visit->id }}"
+                                data-checkin="{{ \Carbon\Carbon::parse($visit->manual_check_in_time)->format('H:i') }}">
                                 Check Out
                             </button>
                         @else
@@ -96,14 +97,20 @@
 @endforeach
 
 <script>
-    // When any checkout modal opens, auto-set the time to right now
+    // When any checkout modal opens, auto-set the time and enforce minimum time
     document.querySelectorAll('.modal').forEach(modal => {
-        modal.addEventListener('show.bs.modal', function() {
+        modal.addEventListener('show.bs.modal', function(event) {
             const input = this.querySelector('.checkout-time');
+            if (!input) return;
+
             const now = new Date();
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            input.value = hours + ':' + minutes;
+            input.value = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+
+            // Set min time from the button's data-checkin attribute
+            const trigger = event.relatedTarget;
+            if (trigger && trigger.dataset.checkin) {
+                input.min = trigger.dataset.checkin;
+            }
         });
     });
 
@@ -119,6 +126,8 @@
             const day = String(today.getDate()).padStart(2, '0');
             hiddenInput.value = year + '-' + month + '-' + day + 'T' + timeInput.value;
             this.submit();
+
+    
         });
     });
 </script>
