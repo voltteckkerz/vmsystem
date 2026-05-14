@@ -114,12 +114,13 @@
                         </thead>
                         <tbody id="registered-visitors-list">
                             @foreach($registeredVisitors as $rv)
-                            <tr class="registered-visitor-row" 
+                            @php $isActive = in_array($rv->nric_passport, $activeVisitorNrics); @endphp
+                            <tr class="registered-visitor-row {{ $isActive ? 'already-added' : '' }}" 
                                 data-nric="{{ $rv->nric_passport }}" 
                                 data-name="{{ $rv->name }}" 
                                 data-company="{{ $rv->company->name ?? '' }}"
-                                style="cursor: pointer; position: relative;">
-                                <td>{{ $rv->name }}</td>
+                                style="cursor: {{ $isActive ? 'not-allowed' : 'pointer' }}; position: relative; {{ $isActive ? 'opacity: 0.4; pointer-events: none;' : '' }}">
+                                <td>{{ $rv->name }} @if($isActive)<span class="badge bg-warning text-dark ms-1">Checked In</span>@endif</td>
                                 <td>{{ $rv->nric_passport }}</td>
                                 <td>{{ $rv->company->name ?? '-' }}</td>
                             </tr>
@@ -409,10 +410,32 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
 
-                // Fill in the visitor data
-                targetBlock.querySelector('input[name="nric_passport[]"]').value = nric;
-                targetBlock.querySelector('input[name="visitor_name[]"]').value = name;
-                targetBlock.querySelector('input[name="company_name[]"]').value = company;
+                // Fill in the visitor data — replace inputs with plain text + hidden inputs
+                const nricInput = targetBlock.querySelector('input[name="nric_passport[]"]');
+                const nameInput = targetBlock.querySelector('input[name="visitor_name[]"]');
+                const companyInput = targetBlock.querySelector('input[name="company_name[]"]');
+
+                [nricInput, nameInput, companyInput].forEach(input => {
+                    const value = input === nricInput ? nric : input === nameInput ? name : company;
+                    // Create hidden input to keep form submission working
+                    const hidden = document.createElement('input');
+                    hidden.type = 'hidden';
+                    hidden.name = input.name;
+                    hidden.value = value;
+                    // Create plain text display
+                    const span = document.createElement('span');
+                    span.className = 'fw-bold d-block fs-6';
+                    span.textContent = value;
+                    // Replace the visible input
+                    input.parentNode.insertBefore(hidden, input);
+                    input.parentNode.insertBefore(span, input);
+                    input.remove();
+                });
+
+                // Blue background with white font for registered visitor block
+                targetBlock.classList.replace('bg-light', 'bg-primary');
+                targetBlock.classList.add('text-white', 'registered-block');
+                targetBlock.querySelectorAll('.form-label, .visitor-number').forEach(el => { el.classList.remove('text-muted'); el.classList.add('text-white'); });
 
                 // Remove the popup
                 popup.remove();
@@ -422,15 +445,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 clickedRow.style.opacity = '0.4';
                 clickedRow.style.pointerEvents = 'none';
 
-                // Flash the filled block green briefly
-                targetBlock.style.transition = 'background-color 0.3s';
-                targetBlock.style.backgroundColor = '#d4edda';
-                setTimeout(() => { targetBlock.style.backgroundColor = ''; }, 1000);
-
                 // Lock company filter after adding
                 updateCompanyFilter();
 
-                // When this visitor block is removed, re-enable the row
+                // When this visitor block is removed, re-enable the row and reset fields
                 const removeBtn = targetBlock.querySelector('.remove-visitor-btn');
                 if (removeBtn) {
                     removeBtn.addEventListener('click', function() {

@@ -17,7 +17,12 @@ class VisitController extends Controller
         $availablePasses = Pass::where('status', 'available')->get();
         $registeredVisitors = Visitor::with('company')->orderBy('name')->get();
 
-        return view('visitor', compact('companies', 'employees', 'availablePasses', 'registeredVisitors'));
+        // Get NRICs of visitors who are currently checked in (active visits)
+        $activeVisitorNrics = Visitor::whereHas('visits', function ($q) {
+            $q->where('status', 'active');
+        })->pluck('nric_passport')->toArray();
+
+        return view('visitor', compact('companies', 'employees', 'availablePasses', 'registeredVisitors', 'activeVisitorNrics'));
     }
 
     public function store(Request $request)
@@ -34,6 +39,17 @@ class VisitController extends Controller
             'pass_id' => 'required|array|min:1|max:5',
             'pass_id.*' => 'required|exists:passes,id|distinct', // distinct prevents duplicate passes!
         ]);
+
+        // Check if any visitor already has an active visit
+        foreach ($request->nric_passport as $nric) {
+            $visitor = Visitor::where('nric_passport', $nric)->first();
+            if ($visitor) {
+                $activeVisit = $visitor->visits()->where('status', 'active')->exists();
+                if ($activeVisit) {
+                    return redirect()->back()->with('error', "Visitor '{$visitor->name}' is already checked in.");
+                }
+            }
+        }
 
         // 1. Create the main Visit Event
         $visit = Visit::create([
