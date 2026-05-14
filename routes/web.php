@@ -25,8 +25,11 @@ Route::post('/import', [App\Http\Controllers\ImportController::class, 'import'])
 
 // Dashboard Route
 Route::get('/dashboard', function () {
-    // Fetch all visits, newest first
-    $liveVisits = App\Models\Visit::with(['employee', 'visitors', 'visitors.company'])->orderBy('created_at', 'desc')->get();
+    // Fetch today's visits only (imported old records won't show here)
+    $liveVisits = App\Models\Visit::with(['employee', 'visitors', 'visitors.company'])
+        ->whereDate('created_at', now()->toDateString())
+        ->orderBy('created_at', 'desc')
+        ->get();
 
     return view('dashboard', compact('liveVisits'));
 })->name('dashboard.index')->middleware('auth');
