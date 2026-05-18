@@ -41,8 +41,9 @@ class VisitController extends Controller
         ]);
 
         // Check if any visitor already has an active visit
-        foreach ($request->nric_passport as $nric) {
-            $visitor = Visitor::where('nric_passport', $nric)->first();
+        foreach ($request->nric_passport as $rawNric) {
+            $cleanNric = str_replace('-', '', $rawNric);
+            $visitor = Visitor::where('nric_passport', $cleanNric)->first();
             if ($visitor) {
                 $activeVisit = $visitor->visits()->where('status', 'active')->exists();
                 if ($activeVisit) {
@@ -61,10 +62,25 @@ class VisitController extends Controller
         ]);
 
         // 2. Loop through each submitted visitor
-        foreach ($request->nric_passport as $index => $nric) {
+        foreach ($request->nric_passport as $index => $rawNric) {
+            // Strip dashes — store as 12 digits only
+            $nric = str_replace('-', '', $rawNric);
             // Find or create the specific company for this visitor
             $company = Company::firstOrCreate(['name' => $request->company_name[$index]]);
             
+            // Check if NRIC already exists with different name or company
+            $existing = Visitor::where('nric_passport', $nric)->first();
+            if ($existing) {
+                $submittedName = $request->visitor_name[$index];
+                if (strtolower($existing->name) !== strtolower($submittedName)) {
+                    return redirect()->back()->with('error', "NRIC '{$nric}' is already registered under '{$existing->name}', but you entered '{$submittedName}'. Please verify the details.");
+                }
+                if ($existing->company_id !== $company->id) {
+                    $existingCompany = $existing->company->name ?? 'Unknown';
+                    return redirect()->back()->with('error', "Visitor '{$existing->name}' ({$nric}) is registered under '{$existingCompany}', but you entered '{$company->name}'. Please verify the details.");
+                }
+            }
+
             // Find or create the specific visitor
             $visitor = Visitor::firstOrCreate(
                 ['nric_passport' => $nric],
@@ -120,10 +136,9 @@ class VisitController extends Controller
         
     public function findVisitor($nric)
     {
-        // Search the database for this exact NRIC, and pull their Company data too
-        $visitor = \App\Models\Visitor::with('company')->where('nric_passport', $nric)->first();
+        $cleanNric = str_replace('-', '', $nric);
+        $visitor = \App\Models\Visitor::with('company')->where('nric_passport', $cleanNric)->first();
         
-        // Return the data as JSON so JavaScript can read it
         return response()->json($visitor);
     }
 

@@ -115,5 +115,34 @@
             @yield('content')
         </main>
     </div>
+
+    {{-- Global Toast Notifications --}}
+    @if(session('success') || session('error'))
+    <div class="position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+        @if(session('success'))
+        <div class="toast align-items-center text-bg-success border-0 show" role="alert" id="toast-success">
+            <div class="d-flex">
+                <div class="toast-body fw-bold">✅ {{ session('success') }}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+        @endif
+        @if(session('error'))
+        <div class="toast align-items-center text-bg-danger border-0 show" role="alert" id="toast-error">
+            <div class="d-flex">
+                <div class="toast-body fw-bold">❌ {{ session('error') }}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+        @endif
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.toast.show').forEach(function(el) {
+                setTimeout(function() { el.classList.remove('show'); }, 4000);
+            });
+        });
+    </script>
+    @endif
 </body>
 </html>

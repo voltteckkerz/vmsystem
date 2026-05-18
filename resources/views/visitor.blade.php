@@ -59,7 +59,7 @@
                                 <div class="row mb-3">
                                     <div class="col-md-3">
                                         <label class="form-label text-muted small">NRIC / Passport</label>
-                                        <input type="text" class="form-control" name="nric_passport[]" required placeholder="e.g. 980101-14-1234">
+                                        <input type="text" class="form-control" name="nric_passport[]" required placeholder="e.g. 980101141234">
                                     </div>
                                     <div class="col-md-3">
                                         <label class="form-label text-muted small">Full Name</label>
@@ -432,10 +432,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     input.remove();
                 });
 
-                // Blue background with white font for registered visitor block
-                targetBlock.classList.replace('bg-light', 'bg-primary');
-                targetBlock.classList.add('text-white', 'registered-block');
-                targetBlock.querySelectorAll('.form-label, .visitor-number').forEach(el => { el.classList.remove('text-muted'); el.classList.add('text-white'); });
+                // Registered visitor block styling (change color codes here)
+                targetBlock.classList.remove('bg-light');
+                targetBlock.style.backgroundColor = '#1a1a2e';  // dark navy background
+                targetBlock.style.color = '#ffffff';             // white text
+                targetBlock.style.borderColor = '#16213e';       // border color
+                targetBlock.classList.add('registered-block');
+                targetBlock.querySelectorAll('.form-label, .visitor-number').forEach(el => { el.classList.remove('text-muted'); el.style.color = '#ffffff'; });
 
                 // Remove the popup
                 popup.remove();

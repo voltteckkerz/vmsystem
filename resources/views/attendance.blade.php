@@ -3,13 +3,6 @@
 @section('content')
 <div class="container">
 
-    {{-- Success/Error Messages --}}
-    @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
-    @if(session('error'))
-        <div class="alert alert-danger">{{ session('error') }}</div>
-    @endif
 
     {{-- ===== SECTION 1: Employee List with Clock In / Clock Out ===== --}}
     <div class="card shadow-sm border-0 mb-4" style="border-radius: 10px;">
@@ -17,66 +10,74 @@
             <h4 class="mb-0"><b>Employee List</b></h4>
         </div>
         <div class="card-body">
-            <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+            <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
                 <table class="table table-hover mb-0">
                     <thead class="table-dark" style="position: sticky; top: 0; z-index: 1;">
                         <tr>
-                            <th>#</th>
                             <th>Name</th>
                             <th>Car Plate 1</th>
                             <th>Car Plate 2</th>
+                            <th style="width: 200px;">Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($employees as $index => $employee)
                     @php
-                        // Check if this specific employee is currently clocked in
                         $isClockedIn = $liveAttendances->where('employee_id', $employee->id)->where('status', 'clocked_in')->isNotEmpty();
+                        $vehicles = $employee->vehicles->pluck('plate_number')->toArray();
                     @endphp
                     
-                    {{-- If clocked in, remove 'employee-row' class and make it unclickable --}}
-                    <tr class="{{ $isClockedIn ? '' : 'employee-row' }}" 
-                        @if(!$isClockedIn)
-                            data-id="{{ $employee->id }}" 
-                            data-name="{{ $employee->name }}" 
-                            data-vehicles='@json($employee->vehicles->pluck("plate_number"))' 
-                            style="cursor: pointer;"
-                        @else
-                            {{-- Grey out and disable clicks --}}
-                            style="opacity: 0.5; pointer-events: none;"
-                        @endif>
-                        
-                        <td>{{ $index + 1 }}</td>
+                    <tr @if($isClockedIn) style="opacity: 0.5;" @endif>
                         <td>
                             {{ $employee->name }}
-                            {{-- Optional: Add a small badge next to their name --}}
                             @if($isClockedIn)
                                 <span class="badge bg-secondary ms-1">Clocked In</span>
                             @endif
                         </td>
-                        <td>{{ $employee->vehicles[0]->plate_number ?? '-' }}</td>
-                        <td>{{ $employee->vehicles[1]->plate_number ?? '-' }}</td>
+                        <td>{{ $vehicles[0] ?? '-' }}</td>
+                        <td>{{ $vehicles[1] ?? '-' }}</td>
+                        <td>
+                            @if(!$isClockedIn)
+                            <div class="d-flex align-items-center gap-2">
+                                @if(count($vehicles) > 0)
+                                <select class="form-select form-select-sm vehicle-select" style="width: 120px;">
+                                    @foreach($vehicles as $plate)
+                                    <option value="{{ $plate }}">{{ $plate }}</option>
+                                    @endforeach
+                                    <option value="">No Vehicle</option>
+                                </select>
+                                @endif
+                                <button type="button" class="btn btn-sm btn-success clockin-action-btn"
+                                    data-id="{{ $employee->id }}"
+                                    data-name="{{ $employee->name }}"
+                                    data-vehicles='@json($vehicles)'>
+                                    Clock In
+                                </button>
+                            </div>
+                            @else
+                            <span class="text-muted">—</span>
+                            @endif
+                        </td>
                     </tr>
                         @endforeach
                     </tbody>
                 </table>
             </div>
 
-            {{-- Selected Display + Vehicle Selection + Buttons --}}
+            {{-- Clock Out Selection --}}
             <div class="mt-3 p-3 bg-light rounded">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <span class="text-muted">Selected:</span>
-                        <strong id="selected-display" class="ms-2">None — click an employee or attendance row</strong>
+                        <span class="text-muted">Selected for Clock Out:</span>
+                        <strong id="selected-display" class="ms-2">None — click an attendance row below</strong>
                     </div>
                     <div>
-                        {{-- Clock In Form --}}
+                        {{-- Clock In Form (hidden, submitted by action buttons) --}}
                         <form method="POST" action="{{ route('attendance.clockIn') }}" id="clockin-form" class="d-inline">
                             @csrf
                             <input type="hidden" id="clock_in_time" name="clock_in_time">
                             <input type="hidden" id="selected-employee-id" name="employee_id">
                             <input type="hidden" id="selected-vehicle-plate" name="vehicle_plate">
-                            <button type="button" class="btn btn-success px-4 me-2" id="clockin-btn" data-bs-toggle="modal" data-bs-target="#clockInModal" disabled>Clock In</button>
                         </form>
 
                         {{-- Clock Out Form --}}
@@ -87,12 +88,6 @@
                             <button type="button" class="btn btn-danger px-4" id="clockout-btn" data-bs-toggle="modal" data-bs-target="#clockOutModal" disabled>Clock Out</button>
                         </form>
                     </div>
-                </div>
-
-                {{-- Vehicle Radio Buttons (hidden by default, shown when employee has vehicles) --}}
-                <div id="vehicle-selection" class="mt-3 d-none">
-                    <label class="form-label text-muted"><b>Select Vehicle:</b></label>
-                    <div id="vehicle-radios"></div>
                 </div>
             </div>
         </div>
@@ -206,68 +201,34 @@
 </div>
 
 <script>
-    // ===== CLICK EMPLOYEE ROW (for Clock In) =====
-    document.querySelectorAll('.employee-row').forEach(row => {
-        row.addEventListener('click', function() {
-            // Clear all highlights
-            document.querySelectorAll('.employee-row').forEach(r => r.classList.remove('table-primary'));
+    // ===== CLICK CLOCK IN BUTTON (per employee row) =====
+    document.querySelectorAll('.clockin-action-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const employeeId = this.dataset.id;
+            const employeeName = this.dataset.name;
+            const row = this.closest('tr');
+            const vehicleSelect = row.querySelector('.vehicle-select');
+            const vehiclePlate = vehicleSelect ? vehicleSelect.value : '';
+
+            // Set hidden form values
+            document.getElementById('selected-employee-id').value = employeeId;
+            document.getElementById('selected-vehicle-plate').value = vehiclePlate;
+            document.getElementById('selected-display').textContent = employeeName;
+
+            // Clear attendance selection
             document.querySelectorAll('.attendance-row').forEach(r => r.classList.remove('table-danger'));
-            
-            // Highlight this row
-            this.classList.add('table-primary');
-            
-            // Set employee data
-            document.getElementById('selected-employee-id').value = this.dataset.id;
-            document.getElementById('selected-display').textContent = this.dataset.name;
-            
-            // Enable Clock In, disable Clock Out
-            document.getElementById('clockin-btn').disabled = false;
             document.getElementById('clockout-btn').disabled = true;
             document.getElementById('selected-attendance-id').value = '';
 
-            // Show vehicle radio buttons if employee has vehicles
-            const vehicles = JSON.parse(this.dataset.vehicles);
-            const vehicleSelection = document.getElementById('vehicle-selection');
-            const vehicleRadios = document.getElementById('vehicle-radios');
-            vehicleRadios.innerHTML = '';
-
-            if (vehicles.length > 0) {
-                vehicles.forEach((plate, index) => {
-                    const div = document.createElement('div');
-                    div.className = 'form-check form-check-inline';
-                    div.innerHTML = '<input class="form-check-input vehicle-radio" type="radio" name="vehicle_radio" id="vehicle' + index + '" value="' + plate + '"' + (index === 0 ? ' checked' : '') + '>' +
-                                    '<label class="form-check-label" for="vehicle' + index + '">' + plate + '</label>';
-                    vehicleRadios.appendChild(div);
-                });
-
-                // Add "No Vehicle" option
-                const noVehicle = document.createElement('div');
-                noVehicle.className = 'form-check form-check-inline';
-                noVehicle.innerHTML = '<input class="form-check-input vehicle-radio" type="radio" name="vehicle_radio" id="vehicleNone" value="">' +
-                                     '<label class="form-check-label" for="vehicleNone">No Vehicle</label>';
-                vehicleRadios.appendChild(noVehicle);
-
-                vehicleSelection.classList.remove('d-none');
-                document.getElementById('selected-vehicle-plate').value = vehicles[0];
-            } else {
-                vehicleSelection.classList.add('d-none');
-                document.getElementById('selected-vehicle-plate').value = '';
-            }
+            // Open Clock In modal
+            const modal = new bootstrap.Modal(document.getElementById('clockInModal'));
+            modal.show();
         });
-    });
-
-    // Update hidden input when radio button changes
-    document.getElementById('vehicle-radios').addEventListener('change', function(e) {
-        if (e.target.classList.contains('vehicle-radio')) {
-            document.getElementById('selected-vehicle-plate').value = e.target.value;
-        }
     });
 
     // ===== CLICK ATTENDANCE ROW (for Clock Out) =====
     document.querySelectorAll('.attendance-row').forEach(row => {
         row.addEventListener('click', function() {
-            // Clear all highlights
-            document.querySelectorAll('.employee-row').forEach(r => r.classList.remove('table-primary'));
             document.querySelectorAll('.attendance-row').forEach(r => r.classList.remove('table-danger'));
             
             // Highlight this row in red
@@ -280,13 +241,9 @@
             // Store check-in time so modal can set the min limit
             document.getElementById('clockOutModal').dataset.checkin = this.dataset.checkin;
             
-            // Enable Clock Out, disable Clock In
+            // Enable Clock Out
             document.getElementById('clockout-btn').disabled = false;
-            document.getElementById('clockin-btn').disabled = true;
             document.getElementById('selected-employee-id').value = '';
-
-            // Hide vehicle selection when clocking out
-            document.getElementById('vehicle-selection').classList.add('d-none');
         });
     });
 
