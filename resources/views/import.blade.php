@@ -67,7 +67,7 @@
                     </thead>
                     <tbody>
                         <tr><td>visitor_name</td><td>John Doe</td><td>Full name</td></tr>
-                        <tr><td>nric_passport</td><td>980101-14-1234</td><td>Unique ID</td></tr>
+                        <tr><td>nric_passport</td><td>980101141234</td><td>Numbers only, no hyphens</td></tr>
                         <tr><td>company_name</td><td>TechCorp Sdn Bhd</td><td>Auto-created if new</td></tr>
                         <tr><td>person_to_meet</td><td>Ahmad</td><td>Must match an employee name</td></tr>
                         <tr><td>purpose</td><td>Meeting</td><td>Reason for visit</td></tr>

@@ -434,7 +434,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // Registered visitor block styling (change color codes here)
                 targetBlock.classList.remove('bg-light');
-                targetBlock.style.backgroundColor = '#1a1a2e';  // dark navy background
+                targetBlock.style.backgroundColor = '#599476';  // dark navy background
                 targetBlock.style.color = '#ffffff';             // white text
                 targetBlock.style.borderColor = '#16213e';       // border color
                 targetBlock.classList.add('registered-block');

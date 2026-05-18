@@ -69,7 +69,7 @@
         </div>
 
         {{-- CENTER: Buttons --}}
-        <div class="col-auto d-flex" style="align-items-start">
+        <div class="col-auto d-flex align-items-center justify-content-center">
             <div class="text-center px-2" style="position: sticky; top: 80px;">
                 <div class="mb-2">
                     <span class="text-muted small d-block">Selected</span>
@@ -77,15 +77,17 @@
                 </div>
 
 
-                <button type="button" class="btn btn-sm btn-success w-100 mb-2" id="clockin-btn" disabled>
+                <div style="position: relative;">
+                <button type="button" class="btn btn-sm btn-success w-50 mb-2" id="clockin-btn" disabled>
                     <i class="bi bi-box-arrow-in-right me-1"></i>Clock In
                 </button>
-                <button type="button" class="btn btn-sm btn-danger w-100" id="clockout-btn" disabled>
+                <button type="button" class="btn btn-sm btn-danger w-50" id="clockout-btn" disabled>
                     <i class="bi bi-box-arrow-left me-1"></i>Clock Out
                 </button>
 
-                <div id="vehicle-selection" class="d-none mt-2">
+                <div id="vehicle-selection" class="d-none" style="position: absolute; top: 100%; left: 0; right: 0; z-index: 10; margin-top: 6px;">
                     <select class="form-select form-select-sm" id="vehicle-dropdown"></select>
+                </div>
                 </div>
             </div>
         </div>
@@ -97,6 +99,7 @@
                     <h5 class="mb-0"><b><i class="bi bi-clock-history me-2"></i>Live Attendance Status</b></h5>
                 </div>
                 <div class="card-body pt-0">
+                    <input type="text" class="form-control form-control-sm mb-3" id="attendance-search" placeholder="Search employee...">
                     <div class="table-responsive" style="max-height: 450px; overflow-y: auto;">
                         <table class="table table-hover mb-0">
                             <thead class="table-dark" style="position: sticky; top: 0; z-index: 1;">
@@ -108,7 +111,7 @@
                                     <th>Status</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="attendance-tbody">
                                 @foreach($liveAttendances as $attendance)
                                 <tr class="{{ $attendance->status == 'clocked_in' ? 'attendance-row' : '' }}"
                                     @if($attendance->status == 'clocked_in')
@@ -207,6 +210,15 @@
     document.getElementById('employee-search').addEventListener('input', function() {
         const query = this.value.toLowerCase();
         document.querySelectorAll('#employee-list tr').forEach(row => {
+            const name = row.querySelector('td')?.textContent.toLowerCase() || '';
+            row.style.display = name.includes(query) ? '' : 'none';
+        });
+    });
+
+    // ===== SEARCH LIVE ATTENDANCE =====
+    document.getElementById('attendance-search').addEventListener('input', function() {
+        const query = this.value.toLowerCase();
+        document.querySelectorAll('#attendance-tbody tr').forEach(row => {
             const name = row.querySelector('td')?.textContent.toLowerCase() || '';
             row.style.display = name.includes(query) ? '' : 'none';
         });
