@@ -46,7 +46,7 @@
                         @if($visit->status == 'active')
                             <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#checkoutModal{{ $visit->id }}"
                                 data-checkin="{{ \Carbon\Carbon::parse($visit->manual_check_in_time)->format('H:i') }}">
-                                Check Out
+                                <i class="bi bi-box-arrow-right me-1"></i>Check Out
                             </button>
                         @else
                             <span class="text-muted small">Checked out at: <br>{{ \Carbon\Carbon::parse($visit->manual_check_out_time)->format('h:i A') }}</span>
@@ -86,8 +86,8 @@
                         <small class="text-muted mt-2 d-block">Defaults to current time. Click to change.</small>
                     </div>
                     <div class="modal-footer justify-content-center">
-                        <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-danger px-4">Confirm Check Out</button>
+                        <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal"><i class="bi bi-x-lg me-1"></i>Cancel</button>
+                        <button type="submit" class="btn btn-danger px-4"><i class="bi bi-box-arrow-right me-1"></i>Confirm Check Out</button>
                     </div>
                 </form>
             </div>

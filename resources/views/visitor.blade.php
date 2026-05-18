@@ -44,7 +44,7 @@
                         <div class="d-flex justify-content-between align-items-end mt-5 mb-2">
                             <h6 class="text-primary mb-0"><b>Visitor Details</b></h6>
                             <button type="button" class="btn btn-sm btn-outline-primary" id="add-visitor-btn">
-                                + Add Visitor
+                                <i class="bi bi-plus-lg me-1"></i>Add Visitor
                             </button>
                         </div>
                         <hr class="mt-1 mb-3">
@@ -59,7 +59,7 @@
                                 <div class="row mb-3">
                                     <div class="col-md-3">
                                         <label class="form-label text-muted small">NRIC / Passport</label>
-                                        <input type="text" class="form-control" name="nric_passport[]" required placeholder="e.g. 980101141234">
+                                        <input type="text" class="form-control nric-input" name="nric_passport[]" required placeholder="e.g. 980101141234" maxlength="12" pattern="\d{12}" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                     </div>
                                     <div class="col-md-3">
                                         <label class="form-label text-muted small">Full Name</label>
@@ -87,8 +87,8 @@
                         @endif
 
                         <div class="d-flex justify-content-end mt-4">
-                            <a href="/dashboard" class="btn btn-light me-2">Cancel</a>
-                            <button type="button" class="btn btn-primary px-4" data-bs-toggle="modal" data-bs-target="#checkinModal" @if($availablePasses->isEmpty()) disabled @endif>Register Visit</button>
+                            <a href="/dashboard" class="btn btn-light me-2"><i class="bi bi-x-lg me-1"></i>Cancel</a>
+                            <button type="button" class="btn btn-primary px-4" data-bs-toggle="modal" data-bs-target="#checkinModal" @if($availablePasses->isEmpty()) disabled @endif><i class="bi bi-person-check me-1"></i>Register Visit</button>
                         </div>
                     </form>
                 </div>
@@ -154,8 +154,8 @@
                 <small class="text-muted mt-2 d-block">Defaults to current time. Click to change.</small>
             </div>
             <div class="modal-footer justify-content-center">
-                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary px-4" id="confirm-checkin-btn">Confirm Check-In</button>
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal"><i class="bi bi-x-lg me-1"></i>Cancel</button>
+                <button type="button" class="btn btn-primary px-4" id="confirm-checkin-btn"><i class="bi bi-check-lg me-1"></i>Confirm Check-In</button>
             </div>
         </div>
     </div>

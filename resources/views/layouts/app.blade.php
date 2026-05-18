@@ -16,6 +16,8 @@
     <!-- Scripts -->
  <!-- Styles -->
  <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+ <!-- Bootstrap Icons -->
+ <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
  <!-- Scripts -->
 <script src="{{ asset('js/app.js') }}" defer></script>
 
@@ -118,30 +120,118 @@
 
     {{-- Global Toast Notifications --}}
     @if(session('success') || session('error'))
-    <div class="position-fixed top-0 end-0 p-3" style="z-index: 9999;">
-        @if(session('success'))
-        <div class="toast align-items-center text-bg-success border-0 show" role="alert" id="toast-success">
-            <div class="d-flex">
-                <div class="toast-body fw-bold">✅ {{ session('success') }}</div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-            </div>
+    <style>
+        .vms-toast {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 99999;
+            min-width: 340px;
+            max-width: 440px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+            animation: vmsSlideIn 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+            backdrop-filter: blur(8px);
+        }
+        .vms-toast.toast-success {
+            background: linear-gradient(135deg, #16a34a, #15803d);
+        }
+        .vms-toast.toast-error {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+        }
+        .vms-toast-body {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px 20px;
+            color: #fff;
+        }
+        .vms-toast-icon {
+            font-size: 1.6rem;
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.2);
+        }
+        .vms-toast-text {
+            flex: 1;
+            font-weight: 600;
+            font-size: 0.92rem;
+            line-height: 1.4;
+        }
+        .vms-toast-close {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.7);
+            font-size: 1.1rem;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        .vms-toast-close:hover {
+            color: #fff;
+            background: rgba(255,255,255,0.15);
+        }
+        .vms-toast-progress {
+            height: 3px;
+            background: rgba(255,255,255,0.3);
+        }
+        .vms-toast-progress-bar {
+            height: 100%;
+            background: rgba(255,255,255,0.7);
+            animation: vmsProgress 4s linear forwards;
+        }
+        .vms-toast.hide {
+            animation: vmsSlideOut 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+        @keyframes vmsSlideIn {
+            from { transform: translateX(120%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes vmsSlideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(120%); opacity: 0; }
+        }
+        @keyframes vmsProgress {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+    </style>
+
+    @if(session('success'))
+    <div class="vms-toast toast-success" id="vms-toast">
+        <div class="vms-toast-body">
+            <div class="vms-toast-icon"><i class="bi bi-check-circle-fill"></i></div>
+            <div class="vms-toast-text">{{ session('success') }}</div>
+            <button class="vms-toast-close" onclick="dismissToast()"><i class="bi bi-x-lg"></i></button>
         </div>
-        @endif
-        @if(session('error'))
-        <div class="toast align-items-center text-bg-danger border-0 show" role="alert" id="toast-error">
-            <div class="d-flex">
-                <div class="toast-body fw-bold">❌ {{ session('error') }}</div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-            </div>
-        </div>
-        @endif
+        <div class="vms-toast-progress"><div class="vms-toast-progress-bar"></div></div>
     </div>
+    @endif
+
+    @if(session('error'))
+    <div class="vms-toast toast-error" id="vms-toast">
+        <div class="vms-toast-body">
+            <div class="vms-toast-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+            <div class="vms-toast-text">{{ session('error') }}</div>
+            <button class="vms-toast-close" onclick="dismissToast()"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="vms-toast-progress"><div class="vms-toast-progress-bar"></div></div>
+    </div>
+    @endif
+
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('.toast.show').forEach(function(el) {
-                setTimeout(function() { el.classList.remove('show'); }, 4000);
-            });
-        });
+        function dismissToast() {
+            const t = document.getElementById('vms-toast');
+            if (t) { t.classList.add('hide'); setTimeout(() => t.remove(), 350); }
+        }
+        setTimeout(dismissToast, 4000);
     </script>
     @endif
 </body>
