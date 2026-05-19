@@ -11,6 +11,7 @@
                 <th>Visitor Name</th>
                 <th>Company</th>
                 <th>Person to Meet</th>
+                <th>Remarks</th>
                 <th>Check-In Time</th>
                 <th>Status</th>
                 <th>Action</th>
@@ -30,6 +31,8 @@
                     <td>{{ $visitor->company->name }}</td>
                     
                     <td>{{ $visit->employee->name }}</td>
+                    
+                    <td>{{ $visit->remarks ?? '-' }}</td>
                     
                     {{-- Format the date nicely --}}
                     <td>{{ \Carbon\Carbon::parse($visit->manual_check_in_time)->format('d M Y, h:i A') }}</td>
@@ -60,7 +63,7 @@
             {{-- What to show if no one is visiting --}}
             @if($liveVisits->isEmpty())
                 <tr>
-                    <td colspan="7" class="text-center">No active visitors right now.</td>
+                    <td colspan="8" class="text-center">No active visitors right now.</td>
                 </tr>
             @endif
         </tbody>

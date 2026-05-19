@@ -106,13 +106,7 @@ class ImportController extends Controller
                 }
             }
 
-            // Check pass number exists
-            if (!empty($row['pass_number'])) {
-                $pass = Pass::where('pass_number', $row['pass_number'])->first();
-                if (!$pass) {
-                    $errors[] = "Row {$rowNum}: Pass number '{$row['pass_number']}' not found.";
-                }
-            }
+            // Passes will be auto-created if they don't exist, so no validation error needed here.
 
             // Check date format and rules
             if (!empty($row['check_in_time'])) {
@@ -170,8 +164,11 @@ class ImportController extends Controller
                 // 3. Employee
                 $employee = Employee::where('name', $row['person_to_meet'])->first();
 
-                // 4. Pass
-                $pass = Pass::where('pass_number', $row['pass_number'])->first();
+                // 4. Pass (auto-create if it doesn't exist, set as Archived so it doesn't seed available passes)
+                $pass = Pass::firstOrCreate(
+                    ['pass_number' => $row['pass_number']],
+                    ['status' => 'Archived']
+                );
 
                 // 5. Visit
                 $visit = Visit::create([

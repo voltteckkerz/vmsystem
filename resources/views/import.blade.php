@@ -76,7 +76,7 @@
                         <tr><td>company_name</td><td>TechCorp Sdn Bhd</td><td>Auto-created if new</td></tr>
                         <tr><td>person_to_meet</td><td>Ahmad</td><td>Must match an employee name</td></tr>
                         <tr><td>purpose</td><td>Meeting</td><td>Reason for visit</td></tr>
-                        <tr><td>pass_number</td><td>P001</td><td>Must match a pass in the system</td></tr>
+                        <tr><td>pass_number</td><td>P0-01</td><td>Auto-created if new</td></tr>
                         <tr><td>check_in_time</td><td>01/05/2026 09:00</td><td>Format: DD/MM/YYYY HH:MM</td></tr>
                         <tr><td>check_out_time</td><td>01/05/2026 17:00</td><td>Must be after check-in</td></tr>
                         <tr><td>remarks</td><td>Delivered equipment</td><td>Visit remarks</td></tr>

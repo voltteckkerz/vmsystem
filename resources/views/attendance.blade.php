@@ -1,6 +1,26 @@
 @extends('layouts.app')
 
 @section('content')
+<style>
+    /* High contrast selection styles */
+    tr.selected-employee > td {
+        background-color: #0d6efd !important; /* Bootstrap primary blue */
+        color: white !important;
+        font-weight: 600;
+    }
+    tr.selected-attendance > td {
+        background-color: #dc3545 !important; /* Bootstrap danger red */
+        color: white !important;
+        font-weight: 600;
+    }
+    /* Subtle hover adjustment for selected rows */
+    .table-hover tbody tr.selected-employee:hover > td {
+        background-color: #0b5ed7 !important;
+    }
+    .table-hover tbody tr.selected-attendance:hover > td {
+        background-color: #c82333 !important;
+    }
+</style>
 <div class="container-fluid px-4">
 
     {{-- Hidden Forms --}}
@@ -228,11 +248,11 @@
     document.querySelectorAll('.employee-row').forEach(row => {
         row.addEventListener('click', function() {
             // Clear all highlights
-            document.querySelectorAll('.employee-row').forEach(r => r.classList.remove('table-primary'));
-            document.querySelectorAll('.attendance-row').forEach(r => r.classList.remove('table-danger'));
+            document.querySelectorAll('.employee-row').forEach(r => r.classList.remove('selected-employee'));
+            document.querySelectorAll('.attendance-row').forEach(r => r.classList.remove('selected-attendance'));
 
             // Highlight this row
-            this.classList.add('table-primary');
+            this.classList.add('selected-employee');
 
             // Set employee data
             const employeeId = this.dataset.id;
@@ -294,11 +314,11 @@
     document.querySelectorAll('.attendance-row').forEach(row => {
         row.addEventListener('click', function() {
             // Clear all highlights
-            document.querySelectorAll('.employee-row').forEach(r => r.classList.remove('table-primary'));
-            document.querySelectorAll('.attendance-row').forEach(r => r.classList.remove('table-danger'));
+            document.querySelectorAll('.employee-row').forEach(r => r.classList.remove('selected-employee'));
+            document.querySelectorAll('.attendance-row').forEach(r => r.classList.remove('selected-attendance'));
 
             // Highlight this row
-            this.classList.add('table-danger');
+            this.classList.add('selected-attendance');
 
             // Set attendance data
             document.getElementById('selected-attendance-id').value = this.dataset.id;
