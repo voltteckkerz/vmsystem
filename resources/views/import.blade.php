@@ -25,7 +25,7 @@
 
     <div class="card shadow-sm border-0 mb-4" style="border-radius: 10px;">
         <div class="card-header bg-white border-0 pt-4 pb-2">
-            <h4 class="mb-0"><b>Import Visitor Data (CSV)</b></h4>
+            <h4 class="mb-0"><b>Import Visitor Data</b></h4>
         </div>
         <div class="card-body">
             <p class="text-muted">
@@ -35,8 +35,13 @@
             </p>
 
             <div class="mb-4">
-                <a href="{{ asset('templates/visitor_import_template.csv') }}" class="btn btn-outline-primary btn-sm" download>
-                    ⬇ Download CSV Template
+                <a href="{{ asset('templates/visitor_import_template.xlsx') }}"
+                   class="btn btn-sm text-white px-4 py-2 rounded-pill shadow-sm"
+                   style="background: linear-gradient(135deg, #217346, #185a34); transition: all 0.2s ease;"
+                   onmouseover="this.style.background='linear-gradient(135deg, #185a34, #0f4025)'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(33,115,70,.4)'"
+                   onmouseout="this.style.background='linear-gradient(135deg, #217346, #185a34)'; this.style.transform='translateY(0)'; this.style.boxShadow=''"
+                   download>
+                    <i class="bi bi-file-earmark-excel me-2"></i>Download Excel Template
                 </a>
             </div>
 
@@ -55,7 +60,7 @@
 
             <hr class="my-4">
 
-            <h6 class="text-muted"><b>CSV Format Reference</b></h6>
+            <h6 class="text-muted"><b>Column Format Reference</b></h6>
             <div class="table-responsive">
                 <table class="table table-bordered table-sm">
                     <thead class="table-light">

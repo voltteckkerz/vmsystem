@@ -27,7 +27,7 @@
                 </div>
                 <div class="card-body pt-0">
                     <input type="text" class="form-control form-control-sm mb-3" id="employee-search" placeholder="Search employee...">
-                    <div class="table-responsive" style="max-height: 450px; overflow-y: auto;">
+                    <div class="table-responsive" style="height: 450px; overflow-y: auto;">
                         <table class="table table-hover mb-0">
                             <thead class="table-dark" style="position: sticky; top: 0; z-index: 1;">
                                 <tr>
@@ -100,7 +100,7 @@
                 </div>
                 <div class="card-body pt-0">
                     <input type="text" class="form-control form-control-sm mb-3" id="attendance-search" placeholder="Search employee...">
-                    <div class="table-responsive" style="max-height: 450px; overflow-y: auto;">
+                    <div class="table-responsive" style="height: 450px; overflow-y: auto;">
                         <table class="table table-hover mb-0">
                             <thead class="table-dark" style="position: sticky; top: 0; z-index: 1;">
                                 <tr>
