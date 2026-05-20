@@ -93,6 +93,8 @@ class ImportController extends Controller
 
             // Check required fields
             foreach (self::REQUIRED_COLUMNS as $col) {
+                if ($col === 'remarks') continue; // Remarks is optional
+
                 if (empty($row[$col])) {
                     $errors[] = "Row {$rowNum}: '{$col}' is required.";
                 }
@@ -174,7 +176,7 @@ class ImportController extends Controller
                 $visit = Visit::create([
                     'employee_id' => $employee->id,
                     'purpose' => $row['purpose'],
-                    'remarks' => $row['remarks'],
+                    'remarks' => $row['remarks'] ?? null,
                     'manual_check_in_time' => Carbon::createFromFormat(self::DATE_FORMAT, $row['check_in_time']),
                     'manual_check_out_time' => Carbon::createFromFormat(self::DATE_FORMAT, $row['check_out_time']),
                     'status' => 'completed',

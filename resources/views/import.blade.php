@@ -31,7 +31,7 @@
             <p class="text-muted">
                 Upload a CSV or Excel file to import old visitor records into the system.<br>
                 Supported formats: <strong>.csv</strong>, <strong>.xlsx</strong>, <strong>.xls</strong><br>
-                Only data from the <strong>past 1 month</strong> is allowed. All 9 columns are required.
+                Only data from the <strong>past 1 month</strong> is allowed. All columns except <strong>Remarks</strong> are required.
             </p>
 
             <div class="mb-4">
@@ -79,7 +79,7 @@
                         <tr><td>pass_number</td><td>P0-01</td><td>Auto-created if new</td></tr>
                         <tr><td>check_in_time</td><td>01/05/2026 09:00</td><td>Format: DD/MM/YYYY HH:MM</td></tr>
                         <tr><td>check_out_time</td><td>01/05/2026 17:00</td><td>Must be after check-in</td></tr>
-                        <tr><td>remarks</td><td>Delivered equipment</td><td>Visit remarks</td></tr>
+                        <tr><td>remarks</td><td>Delivered equipment</td><td>Optional visit remarks</td></tr>
                     </tbody>
                 </table>
             </div>
