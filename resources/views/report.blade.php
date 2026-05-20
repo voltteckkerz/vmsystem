@@ -22,8 +22,8 @@
                 <button type="submit" class="btn btn-primary px-4">Filter</button>
                 {{-- Print Buttons --}}
                 <div class="ms-auto">
-                    <a href="{{ route('report.print', ['filename' => 'Visitor_Report.pdf', 'type' => 'visitor', 'from_date' => $from_date, 'to_date' => $to_date]) }}" target="_blank" class="btn btn-warning">Print Visitor</a>
-                    <a href="{{ route('report.print', ['filename' => 'Attendance_Report.pdf', 'type' => 'attendance', 'from_date' => $from_date, 'to_date' => $to_date]) }}" target="_blank" class="btn btn-warning">Print Attendance</a>
+                    <a href="{{ route('report.print', ['filename' => 'Visitor_Report.pdf', 'type' => 'visitor', 'from_date' => $from_date, 'to_date' => $to_date, 'name' => request('name')]) }}" target="_blank" class="btn btn-warning">Print Visitor</a>
+                    <a href="{{ route('report.print', ['filename' => 'Attendance_Report.pdf', 'type' => 'attendance', 'from_date' => $from_date, 'to_date' => $to_date, 'name' => request('name')]) }}" target="_blank" class="btn btn-warning">Print Attendance</a>
                 </div>
             </form>
         </div>
