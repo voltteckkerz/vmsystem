@@ -90,18 +90,18 @@
 
         {{-- CENTER: Buttons --}}
         <div class="col-auto d-flex align-items-center justify-content-center">
-            <div class="text-center px-2" style="position: sticky; top: 80px;">
+            <div class="text-center px-2" style="position: sticky; top: 80px; width: 140px;">
                 <div class="mb-2">
                     <span class="text-muted small d-block">Selected</span>
-                    <strong id="selected-display" class="d-block" style="min-width: 90px; font-size: 0.85rem;">None</strong>
+                    <strong id="selected-display" class="d-block text-truncate" style="min-width: 90px; max-width: 100%; font-size: 0.85rem;" title="None">None</strong>
                 </div>
 
 
                 <div style="position: relative;">
-                <button type="button" class="btn btn-sm btn-success w-50 mb-2" id="clockin-btn" disabled>
+                <button type="button" class="btn btn-sm btn-success w-100 mb-2" id="clockin-btn" disabled>
                     <i class="bi bi-box-arrow-in-right me-1"></i>Clock In
                 </button>
-                <button type="button" class="btn btn-sm btn-danger w-50" id="clockout-btn" disabled>
+                <button type="button" class="btn btn-sm btn-danger w-100" id="clockout-btn" disabled>
                     <i class="bi bi-box-arrow-left me-1"></i>Clock Out
                 </button>
 
@@ -261,6 +261,7 @@
 
             document.getElementById('selected-employee-id').value = employeeId;
             document.getElementById('selected-display').textContent = employeeName;
+            document.getElementById('selected-display').title = employeeName;
 
             // Show vehicle dropdown if employee has vehicles
             const vehicleSection = document.getElementById('vehicle-selection');
@@ -323,6 +324,7 @@
             // Set attendance data
             document.getElementById('selected-attendance-id').value = this.dataset.id;
             document.getElementById('selected-display').textContent = this.dataset.name;
+            document.getElementById('selected-display').title = this.dataset.name;
             document.getElementById('clockOutModal').dataset.checkin = this.dataset.checkin;
 
             // Enable Clock Out, disable Clock In

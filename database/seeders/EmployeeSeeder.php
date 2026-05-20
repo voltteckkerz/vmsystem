@@ -60,11 +60,20 @@ class EmployeeSeeder extends Seeder
         ];
 
         foreach ($data as $name => $plates) {
-            $employee = Employee::create(['name' => $name, 'status' => 'active']);
+            $employee = Employee::firstOrCreate(
+                ['name' => $name],
+                ['status' => 'active']
+            );
 
             foreach ($plates as $plate) {
-                $vehicle = Vehicle::create(['plate_number' => $plate, 'owner_type' => 'employee']);
-                $employee->vehicles()->attach($vehicle->id);
+                $vehicle = Vehicle::firstOrCreate(
+                    ['plate_number' => $plate],
+                    ['owner_type' => 'employee']
+                );
+
+                if (!$employee->vehicles()->where('vehicle_id', $vehicle->id)->exists()) {
+                    $employee->vehicles()->attach($vehicle->id);
+                }
             }
         }
 
