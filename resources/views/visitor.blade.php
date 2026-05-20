@@ -150,8 +150,8 @@
             </div>
             <div class="modal-body text-center py-4">
                 <p class="mb-3">Select the check-in time:</p>
-                <input type="time" class="form-control mx-auto" id="modal-checkin-time" style="max-width: 200px; font-size: 1.5rem; text-align: center;">
-                <small class="text-muted mt-2 d-block">Defaults to current time. Click to change.</small>
+                <input type="text" class="form-control mx-auto" id="modal-checkin-time" style="max-width: 200px; font-size: 1.5rem; text-align: center;" placeholder="HH:MM" maxlength="5" pattern="([01]\d|2[0-3]):[0-5]\d" required>
+                <small class="text-muted mt-2 d-block">24-hour format (e.g. 08:30, 14:00). Defaults to current time.</small>
             </div>
             <div class="modal-footer justify-content-center">
                 <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal"><i class="bi bi-x-lg me-1"></i>Cancel</button>
@@ -167,8 +167,28 @@ document.addEventListener('DOMContentLoaded', function() {
     const addBtn = document.getElementById('add-visitor-btn');
     const maxVisitors = 5;
 
+    // ===== HELPER: Auto-format time input to HH:MM (24-hour) =====
+    function formatTimeInput(input) {
+        input.addEventListener('input', function() {
+            let val = this.value.replace(/[^0-9]/g, '');
+            if (val.length >= 3) {
+                val = val.substring(0, 2) + ':' + val.substring(2, 4);
+            }
+            this.value = val.substring(0, 5);
+        });
+        input.addEventListener('keydown', function(e) {
+            if ([8, 46, 9, 37, 39].includes(e.keyCode)) return;
+            if (e.key.length === 1 && !/[0-9]/.test(e.key)) e.preventDefault();
+        });
+    }
+
+    function isValidTime(val) {
+        return /^([01]\d|2[0-3]):[0-5]\d$/.test(val);
+    }
+
     // ===== CHECK-IN MODAL =====
     const modalTimeInput = document.getElementById('modal-checkin-time');
+    formatTimeInput(modalTimeInput);
 
     // When the modal opens, auto-set the time to right now
     document.getElementById('checkinModal').addEventListener('show.bs.modal', function() {
@@ -178,13 +198,18 @@ document.addEventListener('DOMContentLoaded', function() {
         modalTimeInput.value = hours + ':' + minutes;
     });
 
-    // When user clicks "Confirm Check-In", combine today's date + selected time and submit
+    // When user clicks "Confirm Check-In", validate and submit
     document.getElementById('confirm-checkin-btn').addEventListener('click', function() {
+        const timeVal = modalTimeInput.value;
+        if (!isValidTime(timeVal)) {
+            alert('Please enter a valid time in HH:MM format (e.g. 08:30, 14:00)');
+            return;
+        }
         const today = new Date();
         const year = today.getFullYear();
         const month = String(today.getMonth() + 1).padStart(2, '0');
         const day = String(today.getDate()).padStart(2, '0');
-        const fullDateTime = year + '-' + month + '-' + day + 'T' + modalTimeInput.value;
+        const fullDateTime = year + '-' + month + '-' + day + 'T' + timeVal;
         document.getElementById('manual_check_in_time').value = fullDateTime;
         document.getElementById('visitor-form').submit();
     });

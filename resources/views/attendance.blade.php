@@ -192,8 +192,8 @@
             <div class="modal-body text-center py-4">
                 <p class="mb-1">Clocking in:</p>
                 <h5 class="mb-3" id="modal-clockin-name"></h5>
-                <input type="time" class="form-control mx-auto" id="modal-clockin-time" style="max-width: 200px; font-size: 1.5rem; text-align: center;">
-                <small class="text-muted mt-2 d-block">Defaults to current time. Click to change.</small>
+                <input type="text" class="form-control mx-auto" id="modal-clockin-time" style="max-width: 200px; font-size: 1.5rem; text-align: center;" placeholder="HH:MM" maxlength="5" pattern="([01]\d|2[0-3]):[0-5]\d" required>
+                <small class="text-muted mt-2 d-block">24-hour format (e.g. 08:30, 14:00). Defaults to current time.</small>
             </div>
             <div class="modal-footer justify-content-center">
                 <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal"><i class="bi bi-x-lg me-1"></i>Cancel</button>
@@ -214,8 +214,8 @@
             <div class="modal-body text-center py-4">
                 <p class="mb-1">Clocking out:</p>
                 <h5 class="mb-3" id="modal-clockout-name"></h5>
-                <input type="time" class="form-control mx-auto" id="modal-clockout-time" style="max-width: 200px; font-size: 1.5rem; text-align: center;">
-                <small class="text-muted mt-2 d-block">Defaults to current time. Click to change.</small>
+                <input type="text" class="form-control mx-auto" id="modal-clockout-time" style="max-width: 200px; font-size: 1.5rem; text-align: center;" placeholder="HH:MM" maxlength="5" pattern="([01]\d|2[0-3]):[0-5]\d" required>
+                <small class="text-muted mt-2 d-block">24-hour format (e.g. 08:30, 14:00). Defaults to current time.</small>
             </div>
             <div class="modal-footer justify-content-center">
                 <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal"><i class="bi bi-x-lg me-1"></i>Cancel</button>
@@ -226,6 +226,31 @@
 </div>
 
 <script>
+    // ===== HELPER: Auto-format time input to HH:MM (24-hour) =====
+    function formatTimeInput(input) {
+        input.addEventListener('input', function() {
+            let val = this.value.replace(/[^0-9]/g, '');
+            if (val.length >= 3) {
+                val = val.substring(0, 2) + ':' + val.substring(2, 4);
+            }
+            this.value = val.substring(0, 5);
+        });
+        input.addEventListener('keydown', function(e) {
+            // Allow backspace, delete, tab, arrows
+            if ([8, 46, 9, 37, 39].includes(e.keyCode)) return;
+            // Block non-numeric keys
+            if (e.key.length === 1 && !/[0-9]/.test(e.key)) e.preventDefault();
+        });
+    }
+
+    function isValidTime(val) {
+        return /^([01]\d|2[0-3]):[0-5]\d$/.test(val);
+    }
+
+    // Apply auto-format to all time inputs
+    formatTimeInput(document.getElementById('modal-clockin-time'));
+    formatTimeInput(document.getElementById('modal-clockout-time'));
+
     // ===== SEARCH EMPLOYEE =====
     document.getElementById('employee-search').addEventListener('input', function() {
         const query = this.value.toLowerCase();
@@ -343,9 +368,14 @@
     });
 
     document.getElementById('confirm-clockin-btn').addEventListener('click', function() {
+        const timeVal = document.getElementById('modal-clockin-time').value;
+        if (!isValidTime(timeVal)) {
+            alert('Please enter a valid time in HH:MM format (e.g. 08:30, 14:00)');
+            return;
+        }
         const today = new Date();
         const date = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
-        document.getElementById('clock_in_time').value = date + 'T' + document.getElementById('modal-clockin-time').value;
+        document.getElementById('clock_in_time').value = date + 'T' + timeVal;
         document.getElementById('clockin-form').submit();
     });
 
@@ -353,23 +383,30 @@
     document.getElementById('clockOutModal').addEventListener('show.bs.modal', function() {
         document.getElementById('modal-clockout-name').textContent = document.getElementById('selected-display').textContent;
         const now = new Date();
-        const timeInput = document.getElementById('modal-clockout-time');
-        timeInput.value = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
-
-        const checkin = this.dataset.checkin;
-        if (checkin) { timeInput.min = checkin; }
+        document.getElementById('modal-clockout-time').value = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
     });
 
     document.getElementById('confirm-clockout-btn').addEventListener('click', function() {
+        const timeVal = document.getElementById('modal-clockout-time').value;
+        if (!isValidTime(timeVal)) {
+            alert('Please enter a valid time in HH:MM format (e.g. 08:30, 14:00)');
+            return;
+        }
+        const checkin = document.getElementById('clockOutModal').dataset.checkin;
+        if (checkin && timeVal < checkin) {
+            alert('Clock out time cannot be earlier than clock in time (' + checkin + ')');
+            return;
+        }
         const attendanceId = document.getElementById('selected-attendance-id').value;
         const today = new Date();
         const date = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
-        const clockOutTime = date + 'T' + document.getElementById('modal-clockout-time').value;
+        const clockOutTime = date + 'T' + timeVal;
 
         const form = document.getElementById('clockout-form');
         form.action = '/attendance/' + attendanceId + '/clock-out';
         document.getElementById('clock_out_time').value = clockOutTime;
         form.submit();
     });
+
 </script>
 @endsection
