@@ -13,7 +13,6 @@ use Carbon\Carbon;
 
 class ImportController extends Controller
 {
-    private const CUTOFF_DAYS = 30; // 1 month
     private const DATE_FORMAT = 'd/m/Y H:i'; // DD/MM/YYYY HH:MM
 
     private const REQUIRED_COLUMNS = [
@@ -86,8 +85,6 @@ class ImportController extends Controller
 
         // Validate all rows first
         $errors = [];
-        $cutoffDate = Carbon::now()->subDays(self::CUTOFF_DAYS)->startOfDay();
-
         foreach ($data as $index => $row) {
             $rowNum = $index + 2; // +2 because row 1 is header, array is 0-indexed
 
@@ -119,9 +116,6 @@ class ImportController extends Controller
                         $errors[] = "Row {$rowNum}: Check-in time cannot be in the future.";
                     }
 
-                    if ($checkIn->lt($cutoffDate)) {
-                        $errors[] = "Row {$rowNum}: Date is too far in the past (limit: 1 month).";
-                    }
                 } catch (\Exception $e) {
                     $errors[] = "Row {$rowNum}: Invalid check_in_time format. Use 'DD/MM/YYYY HH:MM'.";
                 }

@@ -31,7 +31,7 @@
             <p class="text-muted">
                 Upload a CSV or Excel file to import old visitor records into the system.<br>
                 Supported formats: <strong>.csv</strong>, <strong>.xlsx</strong>, <strong>.xls</strong><br>
-                Only data from the <strong>past 1 month</strong> is allowed. All columns except <strong>Remarks</strong> are required.
+                All columns except <strong>Remarks</strong> are required.
             </p>
 
             <div class="mb-4">
