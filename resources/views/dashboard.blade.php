@@ -23,7 +23,7 @@
                 
                 {{-- Since a visit can have multiple visitors, we loop through them --}}
                 @foreach($visit->visitors as $visitor)
-                <tr>
+                <tr style="{{ $visit->status != 'active' ? 'opacity: 0.4;' : '' }}">
                     {{-- Get the pass number from the pivot table! --}}
                     <td><span class="badge bg-primary">{{ $visitor->pivot->pass_id ? App\Models\Pass::find($visitor->pivot->pass_id)->pass_number : 'N/A' }}</span></td>
                     

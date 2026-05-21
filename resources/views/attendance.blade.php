@@ -139,6 +139,8 @@
                                         data-name="{{ $attendance->employee->name }}"
                                         data-checkin="{{ \Carbon\Carbon::parse($attendance->check_in_time)->format('H:i') }}"
                                         style="cursor: pointer;"
+                                    @else
+                                        style="opacity: 0.4;"
                                     @endif>
                                     <td>{{ $attendance->employee->name }}</td>
                                     <td>
