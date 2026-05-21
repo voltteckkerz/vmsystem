@@ -110,7 +110,8 @@ class ReportController extends Controller
             $filename = "Attendance_Report_{$from_date}_to_{$to_date}.pdf";
         }
 
-        $pdf = Pdf::loadView($view, compact('data', 'from_date', 'to_date'));
+        $printed_by = auth()->user()->name ?? 'Unknown';
+        $pdf = Pdf::loadView($view, compact('data', 'from_date', 'to_date', 'printed_by'));
 
         return response($pdf->output(), 200, [
             'Content-Type'        => 'application/pdf',
