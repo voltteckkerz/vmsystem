@@ -53,7 +53,20 @@
                 <td>{{ \Carbon\Carbon::parse($attendance->check_in_time)->format('d/m/Y') }}</td>
                 <td>{{ $attendance->vehicle_plate ?? '-' }}</td>
                 <td>{{ \Carbon\Carbon::parse($attendance->check_in_time)->format('h:i A') }}</td>
-                <td>{{ $attendance->check_out_time ? \Carbon\Carbon::parse($attendance->check_out_time)->format('h:i A') : '-' }}</td>
+                <td>
+                    @if($attendance->check_out_time)
+                        @php
+                            $inDate = \Carbon\Carbon::parse($attendance->check_in_time)->toDateString();
+                            $outDate = \Carbon\Carbon::parse($attendance->check_out_time)->toDateString();
+                        @endphp
+                        {{ \Carbon\Carbon::parse($attendance->check_out_time)->format('h:i A') }}
+                        @if($outDate !== $inDate)
+                            <br><small>({{ \Carbon\Carbon::parse($attendance->check_out_time)->format('d/m/Y') }})</small>
+                        @endif
+                    @else
+                        -
+                    @endif
+                </td>
             </tr>
             @endforeach
         </tbody>

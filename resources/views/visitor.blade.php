@@ -1,6 +1,19 @@
 @extends('layouts.app')
 
 @section('content')
+<style>
+    /* Validation error styles */
+    .is-invalid {
+        border-color: #dc3545 !important;
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+    }
+    .validation-error {
+        color: #dc3545;
+        font-size: 0.8rem;
+        margin-top: 4px;
+        display: block;
+    }
+</style>
 <div class="container">
     <div class="row">
 
@@ -88,7 +101,7 @@
 
                         <div class="d-flex justify-content-end mt-4">
                             <a href="/dashboard" class="btn btn-light me-2"><i class="bi bi-x-lg me-1"></i>Cancel</a>
-                            <button type="button" class="btn btn-primary px-4" data-bs-toggle="modal" data-bs-target="#checkinModal" @if($availablePasses->isEmpty()) disabled @endif><i class="bi bi-person-check me-1"></i>Register Visit</button>
+                            <button type="button" class="btn btn-primary px-4" id="register-visit-btn" @if($availablePasses->isEmpty()) disabled @endif><i class="bi bi-person-check me-1"></i>Register Visit</button>
                         </div>
                     </form>
                 </div>
@@ -198,11 +211,150 @@ document.addEventListener('DOMContentLoaded', function() {
         modalTimeInput.value = hours + ':' + minutes;
     });
 
-    // When user clicks "Confirm Check-In", validate and submit
+    // ===== VALIDATION HELPER =====
+    function clearValidationErrors() {
+        document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+        document.querySelectorAll('.validation-error').forEach(el => el.remove());
+    }
+
+    function showFieldError(field, message) {
+        field.classList.add('is-invalid');
+        // Only add error message if one doesn't already exist
+        if (!field.parentNode.querySelector('.validation-error')) {
+            const errorSpan = document.createElement('span');
+            errorSpan.className = 'validation-error';
+            errorSpan.textContent = message;
+            field.parentNode.appendChild(errorSpan);
+        }
+    }
+
+    // Clear error styling when user interacts with the field
+    document.addEventListener('input', function(e) {
+        if (e.target.classList.contains('is-invalid')) {
+            e.target.classList.remove('is-invalid');
+            const errMsg = e.target.parentNode.querySelector('.validation-error');
+            if (errMsg) errMsg.remove();
+        }
+    });
+    document.addEventListener('change', function(e) {
+        if (e.target.classList.contains('is-invalid')) {
+            e.target.classList.remove('is-invalid');
+            const errMsg = e.target.parentNode.querySelector('.validation-error');
+            if (errMsg) errMsg.remove();
+        }
+    });
+
+    // ===== ERROR TOAST (same style as the global red popup) =====
+    function showErrorToast(message) {
+        // Remove any existing client-side toast
+        const existing = document.getElementById('vms-toast-client');
+        if (existing) existing.remove();
+
+        const toast = document.createElement('div');
+        toast.id = 'vms-toast-client';
+        toast.className = 'vms-toast toast-error';
+        toast.innerHTML = `
+            <div class="vms-toast-body">
+                <div class="vms-toast-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                <div class="vms-toast-text">${message}</div>
+                <button class="vms-toast-close" onclick="this.closest('.vms-toast').classList.add('hide'); setTimeout(() => this.closest('.vms-toast').remove(), 350)"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <div class="vms-toast-progress"><div class="vms-toast-progress-bar"></div></div>
+        `;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.classList.add('hide');
+                setTimeout(() => toast.remove(), 350);
+            }
+        }, 4000);
+    }
+
+    // ===== REGISTER VISIT BUTTON — VALIDATE BEFORE OPENING MODAL =====
+    document.getElementById('register-visit-btn').addEventListener('click', function() {
+        clearValidationErrors();
+        let isValid = true;
+        let errorMessages = [];
+
+        // 1. Validate Person to Meet
+        const employeeSelect = document.getElementById('employee_id');
+        if (!employeeSelect.value) {
+            showFieldError(employeeSelect, 'Please select a person to meet.');
+            errorMessages.push('Person to Meet');
+            isValid = false;
+        }
+
+        // 2. Validate Purpose of Visit
+        const purposeInput = document.getElementById('purpose');
+        if (!purposeInput.value.trim()) {
+            showFieldError(purposeInput, 'Please enter the purpose of visit.');
+            errorMessages.push('Purpose of Visit');
+            isValid = false;
+        }
+
+        // 3. Check at least one visitor exists
+        const visitorBlocks = container.querySelectorAll('.visitor-block');
+        if (visitorBlocks.length === 0) {
+            errorMessages.push('At least one visitor');
+            isValid = false;
+        }
+
+        // 4. Validate each visitor's fields
+        visitorBlocks.forEach(function(block, index) {
+            const nricInput = block.querySelector('input[name="nric_passport[]"]');
+            const nameInput = block.querySelector('input[name="visitor_name[]"]');
+            const companyInput = block.querySelector('input[name="company_name[]"]');
+            const passSelect = block.querySelector('select[name="pass_id[]"]');
+
+            // NRIC (only validate visible inputs, not hidden ones from registered visitors)
+            if (nricInput && nricInput.type !== 'hidden' && !nricInput.value.trim()) {
+                showFieldError(nricInput, 'NRIC / Passport is required.');
+                if (!errorMessages.includes('NRIC / Passport')) errorMessages.push('NRIC / Passport');
+                isValid = false;
+            }
+            // Name
+            if (nameInput && nameInput.type !== 'hidden' && !nameInput.value.trim()) {
+                showFieldError(nameInput, 'Full name is required.');
+                if (!errorMessages.includes('Visitor Name')) errorMessages.push('Visitor Name');
+                isValid = false;
+            }
+            // Company
+            if (companyInput && companyInput.type !== 'hidden' && !companyInput.value.trim()) {
+                showFieldError(companyInput, 'Company name is required.');
+                if (!errorMessages.includes('Company Name')) errorMessages.push('Company Name');
+                isValid = false;
+            }
+            // Pass
+            if (passSelect && !passSelect.value) {
+                showFieldError(passSelect, 'Please assign a pass.');
+                if (!errorMessages.includes('Pass Number')) errorMessages.push('Pass Number');
+                isValid = false;
+            }
+        });
+
+        if (!isValid) {
+            // Show the red toast popup with summary
+            showErrorToast('Please fill in the required fields: ' + errorMessages.join(', '));
+
+            // Scroll to the first error
+            const firstError = document.querySelector('.is-invalid');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                firstError.focus();
+            }
+            return;
+        }
+
+        // All valid — open the check-in modal
+        const modal = new bootstrap.Modal(document.getElementById('checkinModal'));
+        modal.show();
+    });
+
+    // When user clicks "Confirm Check-In", validate time and submit
     document.getElementById('confirm-checkin-btn').addEventListener('click', function() {
         const timeVal = modalTimeInput.value;
         if (!isValidTime(timeVal)) {
-            alert('Please enter a valid time in HH:MM format (e.g. 08:30, 14:00)');
+            showErrorToast('Please enter a valid time in HH:MM format (e.g. 08:30, 14:00)');
             return;
         }
         const today = new Date();
@@ -406,7 +558,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const allNricInputs = document.querySelectorAll('input[name="nric_passport[]"]');
                 for (let i = 0; i < allNricInputs.length; i++) {
                     if (allNricInputs[i].value.trim() === nric) {
-                        alert('This visitor is already added!');
+                        showErrorToast('This visitor is already added!');
                         popup.remove();
                         return;
                     }
@@ -430,7 +582,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         const allBlocks = document.querySelectorAll('.visitor-block');
                         targetBlock = allBlocks[allBlocks.length - 1];
                     } else {
-                        alert('Maximum 5 visitors reached!');
+                        showErrorToast('Maximum 5 visitors reached!');
                         return;
                     }
                 }

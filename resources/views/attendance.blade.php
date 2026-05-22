@@ -153,7 +153,14 @@
                                     <td>{{ \Carbon\Carbon::parse($attendance->check_in_time)->format('d M Y, h:i A') }}</td>
                                     <td>
                                         @if($attendance->check_out_time)
+                                            @php
+                                                $inDate = \Carbon\Carbon::parse($attendance->check_in_time)->toDateString();
+                                                $outDate = \Carbon\Carbon::parse($attendance->check_out_time)->toDateString();
+                                            @endphp
                                             {{ \Carbon\Carbon::parse($attendance->check_out_time)->format('h:i A') }}
+                                            @if($outDate !== $inDate)
+                                                <br><small class="text-muted">({{ \Carbon\Carbon::parse($attendance->check_out_time)->format('d M Y') }})</small>
+                                            @endif
                                         @else
                                             -
                                         @endif
@@ -228,6 +235,31 @@
 </div>
 
 <script>
+    // ===== ERROR TOAST (same style as the global red popup) =====
+    function showErrorToast(message) {
+        const existing = document.getElementById('vms-toast-client');
+        if (existing) existing.remove();
+
+        const toast = document.createElement('div');
+        toast.id = 'vms-toast-client';
+        toast.className = 'vms-toast toast-error';
+        toast.innerHTML = `
+            <div class="vms-toast-body">
+                <div class="vms-toast-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                <div class="vms-toast-text">${message}</div>
+                <button class="vms-toast-close" onclick="this.closest('.vms-toast').classList.add('hide'); setTimeout(() => this.closest('.vms-toast').remove(), 350)"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <div class="vms-toast-progress"><div class="vms-toast-progress-bar"></div></div>
+        `;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.classList.add('hide');
+                setTimeout(() => toast.remove(), 350);
+            }
+        }, 4000);
+    }
+
     // ===== HELPER: Auto-format time input to HH:MM (24-hour) =====
     function formatTimeInput(input) {
         input.addEventListener('input', function() {
@@ -372,7 +404,7 @@
     document.getElementById('confirm-clockin-btn').addEventListener('click', function() {
         const timeVal = document.getElementById('modal-clockin-time').value;
         if (!isValidTime(timeVal)) {
-            alert('Please enter a valid time in HH:MM format (e.g. 08:30, 14:00)');
+            showErrorToast('Please enter a valid time in HH:MM format (e.g. 08:30, 14:00)');
             return;
         }
         const today = new Date();
@@ -391,15 +423,16 @@
     document.getElementById('confirm-clockout-btn').addEventListener('click', function() {
         const timeVal = document.getElementById('modal-clockout-time').value;
         if (!isValidTime(timeVal)) {
-            alert('Please enter a valid time in HH:MM format (e.g. 08:30, 14:00)');
-            return;
-        }
-        const checkin = document.getElementById('clockOutModal').dataset.checkin;
-        if (checkin && timeVal < checkin) {
-            alert('Clock out time cannot be earlier than clock in time (' + checkin + ')');
+            showErrorToast('Please enter a valid time in HH:MM format (e.g. 08:30, 14:00)');
             return;
         }
         const attendanceId = document.getElementById('selected-attendance-id').value;
+
+        // Always use today's date from system clock.
+        // Overnight shifts work naturally: if staff clocked in at 17:30 on 21 May,
+        // the guard clocks them out at 01:40 when it's already 22 May.
+        // Typos are caught: if staff clocked in at 08:30 on 21 May,
+        // guard types 07:30 on the same day → server rejects it.
         const today = new Date();
         const date = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
         const clockOutTime = date + 'T' + timeVal;

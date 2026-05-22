@@ -100,6 +100,31 @@
 @endforeach
 
 <script>
+    // ===== ERROR TOAST (same style as the global red popup) =====
+    function showErrorToast(message) {
+        const existing = document.getElementById('vms-toast-client');
+        if (existing) existing.remove();
+
+        const toast = document.createElement('div');
+        toast.id = 'vms-toast-client';
+        toast.className = 'vms-toast toast-error';
+        toast.innerHTML = `
+            <div class="vms-toast-body">
+                <div class="vms-toast-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                <div class="vms-toast-text">${message}</div>
+                <button class="vms-toast-close" onclick="this.closest('.vms-toast').classList.add('hide'); setTimeout(() => this.closest('.vms-toast').remove(), 350)"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <div class="vms-toast-progress"><div class="vms-toast-progress-bar"></div></div>
+        `;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.classList.add('hide');
+                setTimeout(() => toast.remove(), 350);
+            }
+        }, 4000);
+    }
+
     // ===== HELPER: Auto-format time input to HH:MM (24-hour) =====
     function formatTimeInput(input) {
         input.addEventListener('input', function() {
@@ -122,7 +147,7 @@
     // Apply auto-format to all checkout time inputs
     document.querySelectorAll('.checkout-time').forEach(input => formatTimeInput(input));
 
-    // When any checkout modal opens, auto-set the time and enforce minimum time
+    // When any checkout modal opens, auto-set the time
     document.querySelectorAll('.modal').forEach(modal => {
         modal.addEventListener('show.bs.modal', function(event) {
             const input = this.querySelector('.checkout-time');
@@ -142,26 +167,18 @@
             const timeVal = timeInput.value;
 
             if (!isValidTime(timeVal)) {
-                alert('Please enter a valid time in HH:MM format (e.g. 08:30, 14:00)');
+                showErrorToast('Please enter a valid time in HH:MM format (e.g. 08:30, 14:00)');
                 return;
             }
 
-            // Get checkin time from the trigger button
-            const modalEl = this.closest('.modal');
-            const trigger = modalEl ? document.querySelector('[data-bs-target="#' + modalEl.id + '"]') : null;
-            if (trigger && trigger.dataset.checkin && timeVal < trigger.dataset.checkin) {
-                alert('Check-out time cannot be earlier than check-in time (' + trigger.dataset.checkin + ')');
-                return;
-            }
-
+            // Always use today's date from system clock.
+            // Overnight shifts work naturally (same logic as attendance page).
             const today = new Date();
             const year = today.getFullYear();
             const month = String(today.getMonth() + 1).padStart(2, '0');
             const day = String(today.getDate()).padStart(2, '0');
             hiddenInput.value = year + '-' + month + '-' + day + 'T' + timeVal;
             this.submit();
-
-    
         });
     });
 </script>

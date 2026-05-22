@@ -110,8 +110,11 @@ class VisitController extends Controller
     {
         $visit = Visit::findOrFail($id);
 
+        $checkIn = \Carbon\Carbon::parse($visit->manual_check_in_time);
+        $checkOut = \Carbon\Carbon::parse($request->manual_check_out_time);
+
         // Reject if checkout time is before or equal to check-in time
-        if ($request->manual_check_out_time <= $visit->manual_check_in_time) {
+        if ($checkOut->lte($checkIn)) {
             return redirect()->back()->with('error', 'Check-out time cannot be before or equal to check-in time.');
         }
 

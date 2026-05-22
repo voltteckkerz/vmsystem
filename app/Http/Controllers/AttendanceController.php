@@ -53,8 +53,11 @@ class AttendanceController extends Controller
     {
         $attendance = Attendance::findOrFail($id);
 
+        $checkIn = \Carbon\Carbon::parse($attendance->check_in_time);
+        $checkOut = \Carbon\Carbon::parse($request->clock_out_time);
+
         // Reject if clock-out time is before or equal to clock-in time
-        if ($request->clock_out_time <= $attendance->check_in_time) {
+        if ($checkOut->lte($checkIn)) {
             return redirect()->back()->with('error', 'Clock-out time cannot be before or equal to clock-in time.');
         }
 

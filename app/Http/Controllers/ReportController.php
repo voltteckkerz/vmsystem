@@ -39,9 +39,18 @@ class ReportController extends Controller
         }
 
             // Attendance Report
+            // Include records where check-in OR check-out falls in the date range
+            // so overnight shifts (e.g. check-in 21 May, check-out 22 May) appear on both dates
             $attendances = Attendance::with('employee')
-                ->whereDate('check_in_time', '>=', $from_date)
-                ->whereDate('check_in_time', '<=', $to_date)
+                ->where(function ($query) use ($from_date, $to_date) {
+                    $query->where(function ($q) use ($from_date, $to_date) {
+                        $q->whereDate('check_in_time', '>=', $from_date)
+                          ->whereDate('check_in_time', '<=', $to_date);
+                    })->orWhere(function ($q) use ($from_date, $to_date) {
+                        $q->whereDate('check_out_time', '>=', $from_date)
+                          ->whereDate('check_out_time', '<=', $to_date);
+                    });
+                })
                 ->when($name, function ($query, $name) {
                     return $query->whereHas('employee', function ($q) use ($name) {
                         $q->where('name', 'like', "%{$name}%");
@@ -95,8 +104,15 @@ class ReportController extends Controller
         } else {
             // Sort attendance A-Z by employee name
             $data = Attendance::with('employee')
-                ->whereDate('check_in_time', '>=', $from_date)
-                ->whereDate('check_in_time', '<=', $to_date)
+                ->where(function ($query) use ($from_date, $to_date) {
+                    $query->where(function ($q) use ($from_date, $to_date) {
+                        $q->whereDate('check_in_time', '>=', $from_date)
+                          ->whereDate('check_in_time', '<=', $to_date);
+                    })->orWhere(function ($q) use ($from_date, $to_date) {
+                        $q->whereDate('check_out_time', '>=', $from_date)
+                          ->whereDate('check_out_time', '<=', $to_date);
+                    });
+                })
                 ->when($name, function ($query, $name) {
                     return $query->whereHas('employee', function ($q) use ($name) {
                         $q->where('name', 'like', "%{$name}%");
