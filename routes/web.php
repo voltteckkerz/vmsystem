@@ -25,9 +25,17 @@ Route::post('/import', [App\Http\Controllers\ImportController::class, 'import'])
 
 // Dashboard Route
 Route::get('/dashboard', function () {
-    // Fetch today's visits only (imported old records won't show here)
+    // Show today's visits + any still-active visits from previous days
+    $today = now()->toDateString();
     $liveVisits = App\Models\Visit::with(['employee', 'visitors', 'visitors.company'])
-        ->whereDate('created_at', now()->toDateString())
+        ->where(function ($query) use ($today) {
+            // Today's visits (both active and completed)
+            $query->whereDate('created_at', $today);
+        })
+        ->orWhere(function ($query) {
+            // Still active from previous days (not checked out yet)
+            $query->where('status', 'active');
+        })
         ->orderBy('created_at', 'desc')
         ->get();
 

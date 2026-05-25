@@ -12,7 +12,18 @@ class AttendanceController extends Controller
     public function index()
     {
         $employees = Employee::with('vehicles')->where('status', 'active')->get();
+
+        // Show today's attendance + any still clocked-in from previous days
+        $today = \Carbon\Carbon::today();
         $liveAttendances = Attendance::with('employee')
+            ->where(function ($query) use ($today) {
+                // Today's records (both clocked in and clocked out)
+                $query->whereDate('check_in_time', $today);
+            })
+            ->orWhere(function ($query) {
+                // Still clocked in from previous days
+                $query->where('status', 'clocked_in');
+            })
             ->orderBy('created_at', 'desc')
             ->get();
 
