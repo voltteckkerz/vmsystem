@@ -19,7 +19,7 @@ class EmployeeSeeder extends Seeder
             'ABDUL HANAN' => ['JQB 1724'],
             'ABDUL SHAMIR' => ['VAV 3189'],
             'AFIZA ARBAK' => ['VL 432'],
-            'AHMAD AFIF' => ['BOW 5659'],
+            'AHMAD AFIF' => ['BQW 5659'],
             'AHMAD AZAMUDIAN' => ['PQG 9405'],
             'AHMAD ZAKI BADRUL' => ['BPM 8404'],
             'AISYAH JAAFAR' => ['WUX 5380'],
