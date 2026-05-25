@@ -28,6 +28,58 @@
             font-weight: 600;
             color: #005eeb !important;
         }
+        /* Navbar Stats Sub-bar */
+        .navbar-stats-bar {
+            background: #f4f6fb;
+            border-bottom: 1px solid #e2e6ef;
+            padding: 5px 0;
+        }
+        .navbar-stats-capsule {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .nav-stat-badge {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border-radius: 16px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            white-space: nowrap;
+            transition: transform 0.15s ease;
+        }
+        .nav-stat-badge:hover {
+            transform: scale(1.05);
+        }
+        .nav-stat-badge i {
+            font-size: 0.78rem;
+        }
+        .nav-stat-badge.badge-datetime {
+            background: #e8edfb;
+            color: #3b5998;
+        }
+        .nav-stat-badge.badge-attendance {
+            background: #e2f8eb;
+            color: #16a34a;
+        }
+        .nav-stat-badge.badge-visitor {
+            background: #fff0e0;
+            color: #ea580c;
+        }
+        .nav-stat-divider {
+            width: 1px;
+            height: 18px;
+            background: #d0d5e0;
+        }
+        @media (max-width: 767.98px) {
+            .nav-stat-divider {
+                display: none;
+            }
+        }
         /* Toast notification styles (always available for client-side use) */
         .vms-toast {
             position: fixed;
@@ -119,6 +171,7 @@
                 <a class="navbar-brand">
                     {{ config('app.name', 'Laravel') }}
                 </a>
+
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
                     <span class="navbar-toggler-icon"></span>
                 </button>
@@ -157,8 +210,6 @@
                     @endauth
                     <!-- *** END OF CENTER LINKS *** -->
 
-
-
                     <!-- Right Side Of Navbar -->
                     <ul class="navbar-nav ms-auto">
                         <!-- Authentication Links -->
@@ -194,6 +245,35 @@
                 </div>
             </div>
         </nav>
+
+        {{-- Stats Sub-bar under navbar --}}
+        @auth
+        <div class="navbar-stats-bar">
+            <div class="container">
+                <div class="navbar-stats-capsule">
+                    <span class="nav-stat-badge badge-datetime">
+                        <i class="bi bi-calendar3"></i>
+                        <span id="nav-date"></span>
+                    </span>
+                    <div class="nav-stat-divider"></div>
+                    <span class="nav-stat-badge badge-datetime">
+                        <i class="bi bi-clock"></i>
+                        <span id="nav-time"></span>
+                    </span>
+                    <div class="nav-stat-divider"></div>
+                    <span class="nav-stat-badge badge-attendance">
+                        <i class="bi bi-person-check-fill"></i>
+                        Attendance: {{ $navTodayAttendance ?? 0 }}
+                    </span>
+                    <div class="nav-stat-divider"></div>
+                    <span class="nav-stat-badge badge-visitor">
+                        <i class="bi bi-people-fill"></i>
+                        Visitors: {{ $navTodayVisitors ?? 0 }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        @endauth
 
         <main class="py-4">
             @yield('content')
@@ -233,5 +313,27 @@
         setTimeout(dismissToast, 4000);
     </script>
     @endif
+
+    {{-- Live Clock Script --}}
+    @auth
+    <script>
+        function updateNavClock() {
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('en-GB', {
+                day: '2-digit', month: 'short', year: 'numeric'
+            });
+            const timeStr = now.toLocaleTimeString('en-GB', {
+                hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+            }).toUpperCase();
+
+            const dateEl = document.getElementById('nav-date');
+            const timeEl = document.getElementById('nav-time');
+            if (dateEl) dateEl.textContent = dateStr;
+            if (timeEl) timeEl.textContent = timeStr;
+        }
+        updateNavClock();
+        setInterval(updateNavClock, 1000);
+    </script>
+    @endauth
 </body>
 </html>
