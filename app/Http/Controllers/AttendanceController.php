@@ -49,11 +49,11 @@ class AttendanceController extends Controller
         }
 
         Attendance::create([
-            'employee_id' => $employee->id,
-            'user_id' => auth()->id(),
+            'employee_id'   => $employee->id,
+            'user_id'       => auth()->id(),
             'vehicle_plate' => $request->vehicle_plate,
             'check_in_time' => $request->clock_in_time,
-            'status' => 'clocked_in',
+            'status'        => 'clocked_in',
         ]);
 
         return redirect('/attendance')->with('success', $employee->name . ' clocked in successfully!');
@@ -64,7 +64,7 @@ class AttendanceController extends Controller
     {
         $attendance = Attendance::findOrFail($id);
 
-        $checkIn = \Carbon\Carbon::parse($attendance->check_in_time);
+        $checkIn  = \Carbon\Carbon::parse($attendance->check_in_time);
         $checkOut = \Carbon\Carbon::parse($request->clock_out_time);
 
         // Reject if clock-out time is before or equal to clock-in time
@@ -77,5 +77,42 @@ class AttendanceController extends Controller
         $attendance->save();
 
         return redirect('/attendance')->with('success', 'Clocked out successfully!');
+    }
+
+    // Update clock-in time (correction for accidental wrong time)
+    public function updateCheckIn(Request $request, $id)
+    {
+        $attendance = Attendance::findOrFail($id);
+
+        $request->validate([
+            'check_in_time' => 'required|date',
+        ]);
+
+        $newCheckIn = \Carbon\Carbon::parse($request->check_in_time);
+
+        // If already clocked out, ensure new check-in is still before check-out
+        if ($attendance->check_out_time) {
+            $checkOut = \Carbon\Carbon::parse($attendance->check_out_time);
+            if ($newCheckIn->gte($checkOut)) {
+                return redirect()->back()->with('error',
+                    'Corrected clock-in time must be before the existing clock-out time (' . $checkOut->format('H:i') . ').');
+            }
+        }
+
+        $attendance->check_in_time = $newCheckIn;
+        $attendance->save();
+
+        return redirect('/attendance')->with('success',
+            'Clock-in time corrected to ' . $newCheckIn->format('d M Y, h:i A') . '.');
+    }
+
+    // Delete an attendance record (cancel a wrong clock-in entry)
+    public function destroy($id)
+    {
+        $attendance   = Attendance::findOrFail($id);
+        $employeeName = $attendance->employee->name;
+        $attendance->delete();
+
+        return redirect('/attendance')->with('success', $employeeName . "\'s attendance record has been removed.");
     }
 }
