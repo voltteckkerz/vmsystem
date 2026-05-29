@@ -47,10 +47,21 @@
                     
                     <td>
                         @if($visit->status == 'active')
-                            <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#checkoutModal{{ $visit->id }}"
-                                data-checkin="{{ \Carbon\Carbon::parse($visit->manual_check_in_time)->format('H:i') }}">
-                                <i class="bi bi-box-arrow-right me-1"></i>Check Out
-                            </button>
+                            <div class="d-flex flex-column gap-1">
+                                <button type="button" class="btn btn-sm btn-danger w-100" data-bs-toggle="modal" data-bs-target="#checkoutModal{{ $visit->id }}">
+                                    <i class="bi bi-box-arrow-right me-1"></i>Check Out
+                                </button>
+                                <div class="d-flex gap-1">
+                                    <button type="button" class="btn btn-sm btn-outline-primary flex-fill" title="Correct check-in time"
+                                        onclick="openEditVisitCheckin({{ $visit->id }}, '{{ \Carbon\Carbon::parse($visit->manual_check_in_time)->format('H:i') }}', '{{ \Carbon\Carbon::parse($visit->manual_check_in_time)->format('Y-m-d') }}')">
+                                        <i class="bi bi-pencil-fill"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger flex-fill" title="Cancel this visit"
+                                        onclick="openCancelVisit({{ $visit->id }})">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                </div>
+                            </div>
                         @else
                             <span class="text-muted small">Checked out at: <br>{{ \Carbon\Carbon::parse($visit->manual_check_out_time)->format('h:i A') }}</span>
                         @endif
@@ -99,39 +110,76 @@
     @endif
 @endforeach
 
+{{-- Edit Visit Check-In Modal --}}
+<div class="modal fade" id="editVisitCheckinModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="bi bi-pencil-fill me-2"></i>Correct Check-In Time</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <p class="mb-3 text-muted">Enter the correct check-in time:</p>
+                <form method="POST" id="edit-visit-checkin-form">
+                    @csrf
+                    <input type="hidden" id="edit-visit-checkin-hidden" name="check_in_time">
+                    <input type="text" class="form-control mx-auto" id="edit-visit-checkin-input"
+                        style="max-width:200px; font-size:1.5rem; text-align:center;"
+                        placeholder="HH:MM" maxlength="5" required>
+                    <small class="text-muted mt-2 d-block">24-hour format (e.g. 08:30, 14:00)</small>
+                </form>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal"><i class="bi bi-x-lg me-1"></i>Cancel</button>
+                <button type="button" class="btn btn-primary px-4" id="confirm-edit-visit-checkin"><i class="bi bi-check-lg me-1"></i>Save Correction</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Cancel Visit Modal --}}
+<div class="modal fade" id="cancelVisitModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="bi bi-trash-fill me-2"></i>Cancel Visit</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size:2.5rem;"></i>
+                <p class="mt-3 mb-1">Cancel this visitor check-in?</p>
+                <p class="text-muted small mb-0">The pass will be freed and the visit record deleted.<br>This <strong>cannot</strong> be undone.</p>
+                <form method="POST" id="cancel-visit-form">
+                    @csrf
+                    @method('DELETE')
+                </form>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal"><i class="bi bi-x-lg me-1"></i>No, Keep It</button>
+                <button type="button" class="btn btn-danger px-4" id="confirm-cancel-visit"><i class="bi bi-trash-fill me-1"></i>Yes, Cancel Visit</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-    // ===== ERROR TOAST (same style as the global red popup) =====
+    // ===== ERROR TOAST =====
     function showErrorToast(message) {
         const existing = document.getElementById('vms-toast-client');
         if (existing) existing.remove();
-
         const toast = document.createElement('div');
         toast.id = 'vms-toast-client';
         toast.className = 'vms-toast toast-error';
-        toast.innerHTML = `
-            <div class="vms-toast-body">
-                <div class="vms-toast-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
-                <div class="vms-toast-text">${message}</div>
-                <button class="vms-toast-close" onclick="this.closest('.vms-toast').classList.add('hide'); setTimeout(() => this.closest('.vms-toast').remove(), 350)"><i class="bi bi-x-lg"></i></button>
-            </div>
-            <div class="vms-toast-progress"><div class="vms-toast-progress-bar"></div></div>
-        `;
+        toast.innerHTML = `<div class="vms-toast-body"><div class="vms-toast-icon"><i class="bi bi-exclamation-triangle-fill"></i></div><div class="vms-toast-text">${message}</div><button class="vms-toast-close" onclick="this.closest('.vms-toast').classList.add('hide');setTimeout(()=>this.closest('.vms-toast').remove(),350)"><i class="bi bi-x-lg"></i></button></div><div class="vms-toast-progress"><div class="vms-toast-progress-bar"></div></div>`;
         document.body.appendChild(toast);
-        setTimeout(() => {
-            if (toast.parentNode) {
-                toast.classList.add('hide');
-                setTimeout(() => toast.remove(), 350);
-            }
-        }, 4000);
+        setTimeout(() => { if (toast.parentNode) { toast.classList.add('hide'); setTimeout(() => toast.remove(), 350); } }, 4000);
     }
 
     // ===== HELPER: Auto-format time input to HH:MM (24-hour) =====
     function formatTimeInput(input) {
         input.addEventListener('input', function() {
             let val = this.value.replace(/[^0-9]/g, '');
-            if (val.length >= 3) {
-                val = val.substring(0, 2) + ':' + val.substring(2, 4);
-            }
+            if (val.length >= 3) val = val.substring(0, 2) + ':' + val.substring(2, 4);
             this.value = val.substring(0, 5);
         });
         input.addEventListener('keydown', function(e) {
@@ -140,46 +188,69 @@
         });
     }
 
-    function isValidTime(val) {
-        return /^([01]\d|2[0-3]):[0-5]\d$/.test(val);
-    }
+    function isValidTime(val) { return /^([01]\d|2[0-3]):[0-5]\d$/.test(val); }
 
     // Apply auto-format to all checkout time inputs
     document.querySelectorAll('.checkout-time').forEach(input => formatTimeInput(input));
 
-    // When any checkout modal opens, auto-set the time
+    // When any checkout modal opens, auto-set the time to now
     document.querySelectorAll('.modal').forEach(modal => {
-        modal.addEventListener('show.bs.modal', function(event) {
+        modal.addEventListener('show.bs.modal', function() {
             const input = this.querySelector('.checkout-time');
             if (!input) return;
-
             const now = new Date();
             input.value = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
         });
     });
 
-    // When checkout form submits, validate and combine today's date + selected time
+    // Checkout form submit — validate time then combine with today's date
     document.querySelectorAll('.checkout-form').forEach(form => {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
-            const timeInput = this.querySelector('.checkout-time');
+            const timeInput  = this.querySelector('.checkout-time');
             const hiddenInput = this.querySelector('.checkout-datetime');
             const timeVal = timeInput.value;
-
-            if (!isValidTime(timeVal)) {
-                showErrorToast('Please enter a valid time in HH:MM format (e.g. 08:30, 14:00)');
-                return;
-            }
-
-            // Always use today's date from system clock.
-            // Overnight shifts work naturally (same logic as attendance page).
+            if (!isValidTime(timeVal)) { showErrorToast('Please enter a valid time in HH:MM format (e.g. 08:30, 14:00)'); return; }
             const today = new Date();
-            const year = today.getFullYear();
-            const month = String(today.getMonth() + 1).padStart(2, '0');
-            const day = String(today.getDate()).padStart(2, '0');
-            hiddenInput.value = year + '-' + month + '-' + day + 'T' + timeVal;
+            const date  = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
+            hiddenInput.value = date + 'T' + timeVal;
             this.submit();
         });
+    });
+
+    // ===== EDIT VISIT CHECK-IN =====
+    let editVisitId = null, editVisitDate = null;
+
+    function openEditVisitCheckin(visitId, currentTime, currentDate) {
+        editVisitId   = visitId;
+        editVisitDate = currentDate;
+        document.getElementById('edit-visit-checkin-input').value = currentTime;
+        new bootstrap.Modal(document.getElementById('editVisitCheckinModal')).show();
+    }
+
+    document.getElementById('confirm-edit-visit-checkin').addEventListener('click', function() {
+        const timeVal = document.getElementById('edit-visit-checkin-input').value;
+        if (!isValidTime(timeVal)) { showErrorToast('Please enter a valid time in HH:MM format (e.g. 08:30, 14:00)'); return; }
+        const form = document.getElementById('edit-visit-checkin-form');
+        form.action = '/visit/' + editVisitId + '/update-checkin';
+        document.getElementById('edit-visit-checkin-hidden').value = editVisitDate + 'T' + timeVal;
+        form.submit();
+    });
+
+    formatTimeInput(document.getElementById('edit-visit-checkin-input'));
+
+    // ===== CANCEL / DELETE VISIT =====
+    let cancelVisitId = null;
+
+    function openCancelVisit(visitId) {
+        cancelVisitId = visitId;
+        new bootstrap.Modal(document.getElementById('cancelVisitModal')).show();
+    }
+
+    document.getElementById('confirm-cancel-visit').addEventListener('click', function() {
+        const form = document.getElementById('cancel-visit-form');
+        form.action = '/visit/' + cancelVisitId;
+        form.submit();
     });
 </script>
 

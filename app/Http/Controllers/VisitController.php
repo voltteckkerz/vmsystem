@@ -137,6 +137,73 @@ class VisitController extends Controller
         return redirect('/dashboard')->with('success', 'Visit Checked Out Successfully!');
     }
         
+
+    // Edit visitor name/company
+    public function updateVisitor(Request $request, $id)
+    {
+        $visitor = Visitor::findOrFail($id);
+
+        $request->validate([
+            'name'         => 'required|string|max:255',
+            'company_name' => 'required|string|max:255',
+        ]);
+
+        $company = Company::firstOrCreate(['name' => trim($request->company_name)]);
+
+        $visitor->name       = trim($request->name);
+        $visitor->company_id = $company->id;
+        $visitor->save();
+
+        return redirect()->back()->with('success', "Visitor \"{$visitor->name}\" updated successfully.");
+    }
+
+    // Delete visitor — blocked if they have any visit history
+    public function destroyVisitor($id)
+    {
+        $visitor = Visitor::findOrFail($id);
+
+        if ($visitor->visits()->exists()) {
+            return redirect()->back()->with('error',
+                "Cannot delete \"{$visitor->name}\" — they have visit records. Only visitors with no history can be deleted.");
+        }
+
+        $name = $visitor->name;
+        $visitor->delete();
+
+        return redirect()->back()->with('success', "\"{$name}\" has been removed from registered visitors.");
+    }
+
+    // Edit visit check-in time (from dashboard)
+    public function updateVisitCheckIn(Request $request, $id)
+    {
+        $visit = Visit::findOrFail($id);
+
+        $request->validate(['check_in_time' => 'required|date']);
+
+        $visit->manual_check_in_time = $request->check_in_time;
+        $visit->save();
+
+        return redirect('/dashboard')->with('success', 'Check-in time updated successfully.');
+    }
+
+    // Cancel / delete an active visit — frees passes
+    public function destroyVisit($id)
+    {
+        $visit = Visit::findOrFail($id);
+
+        foreach ($visit->visitors as $visitor) {
+            $passId = $visitor->pivot->pass_id;
+            if ($passId) {
+                $pass = Pass::find($passId);
+                if ($pass) { $pass->status = 'available'; $pass->save(); }
+            }
+        }
+
+        $visit->delete();
+
+        return redirect('/dashboard')->with('success', 'Visit has been cancelled and passes freed.');
+    }
+
     public function findVisitor($nric)
     {
         $cleanNric = str_replace('-', '', $nric);

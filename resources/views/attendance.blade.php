@@ -29,7 +29,7 @@
         align-items: center;
         justify-content: center;
         cursor: not-allowed;
-        transition: background 0.18s, color 0.18s, border-color 0.18s, box-shadow 0.18s;
+        transition: background 0.18s, color 0.18s, border-color 0.18s, box-shadow 0.18s, transform 0.15s, filter 0.15s;
         position: relative;
     }
     .icon-btn:disabled,
@@ -39,22 +39,19 @@
         background: transparent !important;
         cursor: not-allowed;
         box-shadow: none !important;
+        transform: none !important;
+        filter: none !important;
     }
-    /* Active (enabled) state — show color */
-    .icon-btn.active-btn { cursor: pointer; }
-    .icon-btn.active-btn.btn-clockin  { border-color: #28a745; color: #28a745; }
-    .icon-btn.active-btn.btn-clockout { border-color: #dc3545; color: #dc3545; }
-    .icon-btn.active-btn.btn-correct  { border-color: #0d6efd; color: #0d6efd; }
-    .icon-btn.active-btn.btn-remove-att { border-color: #fd7e14; color: #fd7e14; }
-    .icon-btn.active-btn.btn-remove-emp { border-color: #dc3545; color: #dc3545; }
-    /* Hover — fill color */
-    .icon-btn.active-btn.btn-clockin:hover  { background: #28a745; color: #fff; box-shadow: 0 2px 8px rgba(40,167,69,0.35); }
-    .icon-btn.active-btn.btn-clockout:hover { background: #dc3545; color: #fff; box-shadow: 0 2px 8px rgba(220,53,69,0.35); }
-    .icon-btn.active-btn.btn-correct:hover  { background: #0d6efd; color: #fff; box-shadow: 0 2px 8px rgba(13,110,253,0.35); }
-    .icon-btn.active-btn.btn-remove-att:hover { background: #fd7e14; color: #fff; box-shadow: 0 2px 8px rgba(253,126,20,0.35); }
-    .icon-btn.active-btn.btn-remove-emp:hover { background: #dc3545; color: #fff; box-shadow: 0 2px 8px rgba(220,53,69,0.35); }
-    .icon-btn.active-btn.btn-add-emp  { border-color: #28a745; color: #28a745; }
-    .icon-btn.active-btn.btn-add-emp:hover  { background: #28a745; color: #fff; box-shadow: 0 2px 8px rgba(40,167,69,0.35); }
+    /* Active (enabled) state — solid filled background */
+    .icon-btn.active-btn { cursor: pointer; border-color: transparent; color: #fff; }
+    .icon-btn.active-btn.btn-clockin    { background: #28a745; box-shadow: 0 3px 10px rgba(40,167,69,0.45); }
+    .icon-btn.active-btn.btn-clockout   { background: #dc3545; box-shadow: 0 3px 10px rgba(220,53,69,0.45); }
+    .icon-btn.active-btn.btn-correct    { background: #0d6efd; box-shadow: 0 3px 10px rgba(13,110,253,0.45); }
+    .icon-btn.active-btn.btn-remove-att { background: #fd7e14; box-shadow: 0 3px 10px rgba(253,126,20,0.45); }
+    .icon-btn.active-btn.btn-remove-emp { background: #dc3545; box-shadow: 0 3px 10px rgba(220,53,69,0.45); }
+    .icon-btn.active-btn.btn-add-emp    { background: #28a745; box-shadow: 0 3px 10px rgba(40,167,69,0.45); }
+    /* Hover — slightly darker + scale */
+    .icon-btn.active-btn:hover { transform: scale(1.1); filter: brightness(0.88); }
     /* Tooltip label under icon */
     .icon-btn-wrap {
         display: flex;
@@ -68,16 +65,17 @@
         white-space: nowrap;
         transition: color 0.18s;
     }
-    .icon-btn.active-btn.btn-clockin  + .icon-btn-label { color: #28a745; }
-    .icon-btn.active-btn.btn-clockout + .icon-btn-label { color: #dc3545; }
-    .icon-btn.active-btn.btn-correct  + .icon-btn-label { color: #0d6efd; }
+    /* Labels match button color when active */
+    .icon-btn.active-btn.btn-clockin    + .icon-btn-label { color: #28a745; }
+    .icon-btn.active-btn.btn-clockout   + .icon-btn-label { color: #dc3545; }
+    .icon-btn.active-btn.btn-correct    + .icon-btn-label { color: #0d6efd; }
     .icon-btn.active-btn.btn-remove-att + .icon-btn-label { color: #fd7e14; }
     .icon-btn.active-btn.btn-remove-emp + .icon-btn-label { color: #dc3545; }
+    .icon-btn.active-btn.btn-add-emp    + .icon-btn-label { color: #28a745; }
     /* Divider */
     .center-divider { border-top: 1px dashed #dee2e6; margin: 12px 0; }
-    /* Add employee inline row */
-    #add-emp-inline-row td { padding: 6px 8px; }
-    #add-emp-inline-row input { font-size: 0.82rem; }
+    /* Add Employee modal input uppercase */
+    #modal-emp-name, #modal-emp-plate1, #modal-emp-plate2 { text-transform: uppercase; }
 </style>
 
 <div class="container-fluid px-4">
@@ -159,25 +157,7 @@
                                     <td>{{ $vehicles[1] ?? '-' }}</td>
                                 </tr>
                                 @endforeach
-                                {{-- Inline Add Row --}}
-                                <tr id="add-emp-inline-row" style="display:none; background:#f8fbff;">
-                                    <td>
-                                        <input type="text" id="inp-emp-name" class="form-control form-control-sm"
-                                            placeholder="Full name" autocomplete="off" style="text-transform:uppercase; min-width:130px;">
-                                    </td>
-                                    <td>
-                                        <input type="text" id="inp-emp-plate1" class="form-control form-control-sm"
-                                            placeholder="Plate 1" autocomplete="off" style="text-transform:uppercase; max-width:90px;">
-                                    </td>
-                                    <td>
-                                        <div class="d-flex gap-1 align-items-center">
-                                            <input type="text" id="inp-emp-plate2" class="form-control form-control-sm"
-                                                placeholder="Plate 2" autocomplete="off" style="text-transform:uppercase; max-width:90px;">
-                                            <button type="button" class="btn btn-success btn-sm px-2" id="save-emp-btn"><i class="bi bi-check-lg"></i></button>
-                                            <button type="button" class="btn btn-secondary btn-sm px-2" id="cancel-add-emp-btn"><i class="bi bi-x-lg"></i></button>
-                                        </div>
-                                    </td>
-                                </tr>
+
                             </tbody>
                         </table>
                     </div>
@@ -445,6 +425,41 @@
     </div>
 </div>
 
+{{-- Add Employee Modal --}}
+<div class="modal fade" id="addEmployeeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header text-white" style="background: #28a745;">
+                <h5 class="modal-title"><i class="bi bi-person-plus-fill me-2"></i>Add New Employee</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body py-4 px-4">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Full Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="modal-emp-name"
+                        placeholder="e.g. JOHN DOE" autocomplete="off">
+                </div>
+                <div class="row g-3">
+                    <div class="col-6">
+                        <label class="form-label fw-semibold">Car Plate 1 <span class="text-muted fw-normal small">(optional)</span></label>
+                        <input type="text" class="form-control" id="modal-emp-plate1"
+                            placeholder="e.g. WXY1234" autocomplete="off">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label fw-semibold">Car Plate 2 <span class="text-muted fw-normal small">(optional)</span></label>
+                        <input type="text" class="form-control" id="modal-emp-plate2"
+                            placeholder="e.g. VBG9876" autocomplete="off">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal"><i class="bi bi-x-lg me-1"></i>Cancel</button>
+                <button type="button" class="btn btn-success px-4" id="save-emp-btn"><i class="bi bi-person-check-fill me-1"></i>Save Employee</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     // ===== HELPERS =====
     function showErrorToast(message) {
@@ -674,31 +689,43 @@
         form.submit();
     });
 
-    // ===== ADD EMPLOYEE INLINE =====
-    document.getElementById('show-add-emp-btn').addEventListener('click', function() {
-        document.getElementById('add-emp-inline-row').style.display = '';
-        document.getElementById('inp-emp-name').focus();
-        // button stays visible
-    });
-    document.getElementById('cancel-add-emp-btn').addEventListener('click', function() {
-        document.getElementById('add-emp-inline-row').style.display = 'none';
-        // button always visible
-        ['inp-emp-name','inp-emp-plate1','inp-emp-plate2'].forEach(id => document.getElementById(id).value = '');
-    });
-    ['inp-emp-name','inp-emp-plate1','inp-emp-plate2'].forEach(id => {
+    // ===== ADD EMPLOYEE MODAL =====
+
+    // Auto-uppercase on input
+    ['modal-emp-name','modal-emp-plate1','modal-emp-plate2'].forEach(id => {
         document.getElementById(id).addEventListener('input', function() {
-            const pos = this.selectionStart; this.value = this.value.toUpperCase(); this.setSelectionRange(pos,pos);
+            const pos = this.selectionStart;
+            this.value = this.value.toUpperCase();
+            this.setSelectionRange(pos, pos);
         });
     });
+
+    // Clear fields when modal closes
+    document.getElementById('addEmployeeModal').addEventListener('hidden.bs.modal', function() {
+        ['modal-emp-name','modal-emp-plate1','modal-emp-plate2'].forEach(id => document.getElementById(id).value = '');
+    });
+
+    // Open modal when Add Emp button is clicked (lazy init — same pattern as other modals)
+    document.getElementById('show-add-emp-btn').addEventListener('click', function() {
+        new bootstrap.Modal(document.getElementById('addEmployeeModal')).show();
+        document.getElementById('addEmployeeModal').addEventListener('shown.bs.modal', function focusName() {
+            document.getElementById('modal-emp-name').focus();
+            document.getElementById('addEmployeeModal').removeEventListener('shown.bs.modal', focusName);
+        });
+    });
+
+    // Save employee
     document.getElementById('save-emp-btn').addEventListener('click', function() {
-        const name = document.getElementById('inp-emp-name').value.trim();
+        const name = document.getElementById('modal-emp-name').value.trim();
         if (!name) { showErrorToast('Please enter the employee name.'); return; }
         document.getElementById('new-emp-name').value   = name;
-        document.getElementById('new-emp-plate1').value = document.getElementById('inp-emp-plate1').value.trim();
-        document.getElementById('new-emp-plate2').value = document.getElementById('inp-emp-plate2').value.trim();
+        document.getElementById('new-emp-plate1').value = document.getElementById('modal-emp-plate1').value.trim();
+        document.getElementById('new-emp-plate2').value = document.getElementById('modal-emp-plate2').value.trim();
         document.getElementById('add-employee-form').submit();
     });
-    document.getElementById('inp-emp-name').addEventListener('keydown', function(e) {
+
+    // Allow Enter key in name field to submit
+    document.getElementById('modal-emp-name').addEventListener('keydown', function(e) {
         if (e.key === 'Enter') document.getElementById('save-emp-btn').click();
     });
 

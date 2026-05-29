@@ -49,7 +49,11 @@ Route::get('/dashboard', function () {
 
 // Visitor Routes
 Route::post('/visitor', [App\Http\Controllers\VisitController::class, 'store'])->name('visit.store')->middleware('auth');
+Route::put('/visitor/{id}', [App\Http\Controllers\VisitController::class, 'updateVisitor'])->name('visit.updateVisitor')->middleware('auth');
+Route::delete('/visitor/{id}', [App\Http\Controllers\VisitController::class, 'destroyVisitor'])->name('visit.destroyVisitor')->middleware('auth');
 Route::post('/visit/{id}/checkout', [App\Http\Controllers\VisitController::class, 'checkout'])->name('visit.checkout')->middleware('auth');
+Route::post('/visit/{id}/update-checkin', [App\Http\Controllers\VisitController::class, 'updateVisitCheckIn'])->name('visit.updateCheckIn')->middleware('auth');
+Route::delete('/visit/{id}', [App\Http\Controllers\VisitController::class, 'destroyVisit'])->name('visit.destroyVisit')->middleware('auth');
 
 Route::get('/api/visitor/{nric}',
     [App\Http\Controllers\VisitController::class, 'findVisitor'

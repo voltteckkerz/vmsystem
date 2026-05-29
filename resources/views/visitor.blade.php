@@ -13,8 +13,43 @@
         margin-top: 4px;
         display: block;
     }
+    /* Registered visitor row highlight */
+    .rv-selected > td { background-color: #0d6efd !important; color: #fff !important; }
+    .table-hover tbody tr.rv-selected:hover > td { background-color: #0b5ed7 !important; }
+    /* Inline row action buttons — hidden until row is selected */
+    .rv-row-actions { display: none; gap: 4px; align-items: center; justify-content: flex-end; }
+    tr.rv-selected .rv-row-actions { display: flex; }
+    /* Add button lives inside the Name cell */
+    .rv-add-wrap { display: none; align-items: center; }
+    tr.rv-selected .rv-add-wrap { display: inline-flex; }
+    .rv-name-cell { display: flex; align-items: center; gap: 6px; }
+    .rv-action-btn {
+        width: 26px; height: 26px; border-radius: 50%;
+        border: none; color: #fff;
+        font-size: 0.72rem; display: inline-flex; align-items: center;
+        justify-content: center; cursor: pointer; transition: all 0.18s;
+        flex-shrink: 0; line-height: 1; box-shadow: 0 1px 4px rgba(0,0,0,0.18);
+    }
+    .rv-action-btn:hover { transform: scale(1.18); filter: brightness(1.12); }
+    .rv-action-btn.btn-add  { background: #3ecf7a; }
+    .rv-action-btn.btn-edit { background: #3b82f6; }
+    .rv-action-btn.btn-del  { background: #ef4444; }
+    .rv-action-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; filter: none; }
 </style>
 <div class="container">
+
+    {{-- Hidden forms for visitor edit/delete --}}
+    <form method="POST" id="edit-visitor-form" class="d-none">
+        @csrf
+        @method('PUT')
+        <input type="hidden" id="edit-visitor-name-hidden" name="name">
+        <input type="hidden" id="edit-visitor-company-hidden" name="company_name">
+    </form>
+    <form method="POST" id="delete-visitor-form" class="d-none">
+        @csrf
+        @method('DELETE')
+    </form>
+
     <div class="row">
 
         {{-- ===== LEFT COLUMN: REGISTRATION FORM ===== --}}
@@ -123,25 +158,52 @@
                                 <th>Name</th>
                                 <th>NRIC</th>
                                 <th>Company</th>
+                                <th style="width:60px;"></th>
                             </tr>
                         </thead>
                         <tbody id="registered-visitors-list">
                             @foreach($registeredVisitors as $rv)
                             @php $isActive = in_array($rv->nric_passport, $activeVisitorNrics); @endphp
-                            <tr class="registered-visitor-row {{ $isActive ? 'already-added' : '' }}" 
-                                data-nric="{{ $rv->nric_passport }}" 
-                                data-name="{{ $rv->name }}" 
+                            <tr class="registered-visitor-row {{ $isActive ? 'already-added' : '' }}"
+                                data-id="{{ $rv->id }}"
+                                data-nric="{{ $rv->nric_passport }}"
+                                data-name="{{ $rv->name }}"
                                 data-company="{{ $rv->company->name ?? '' }}"
-                                style="cursor: {{ $isActive ? 'not-allowed' : 'pointer' }}; position: relative; {{ $isActive ? 'opacity: 0.4; pointer-events: none;' : '' }}">
-                                <td>{{ $rv->name }} @if($isActive)<span class="badge bg-warning text-dark ms-1">Checked In</span>@endif</td>
-                                <td>{{ $rv->nric_passport }}</td>
-                                <td>{{ $rv->company->name ?? '-' }}</td>
+                                data-active="{{ $isActive ? '1' : '0' }}"
+                                style="cursor: pointer; position: relative; {{ $isActive ? 'opacity: 0.5;' : '' }}">
+                                {{-- Name cell: arrow add button appears to the LEFT of the name --}}
+                                <td class="align-middle" style="white-space:nowrap;">
+                                    <div class="rv-name-cell">
+                                        <span class="rv-add-wrap">
+                                            <button type="button" class="rv-action-btn btn-add" title="Add to form"
+                                                {{ $isActive ? 'disabled' : '' }}
+                                                onclick="event.stopPropagation(); rvRowAdd(this)">
+                                                <i class="bi bi-arrow-left"></i>
+                                            </button>
+                                        </span>
+                                        <span>{{ $rv->name }} @if($isActive)<span class="badge bg-warning text-dark ms-1">Checked In</span>@endif</span>
+                                    </div>
+                                </td>
+                                <td class="align-middle">{{ $rv->nric_passport }}</td>
+                                <td class="align-middle">{{ $rv->company->name ?? '-' }}</td>
+                                <td class="text-end align-middle" style="padding:4px 8px; white-space:nowrap;">
+                                    <div class="rv-row-actions">
+                                        <button type="button" class="rv-action-btn btn-edit" title="Edit visitor"
+                                            onclick="event.stopPropagation(); rvRowEdit(this)">
+                                            <i class="bi bi-pencil-fill"></i>
+                                        </button>
+                                        <button type="button" class="rv-action-btn btn-del" title="Delete visitor"
+                                            onclick="event.stopPropagation(); rvRowDelete(this)">
+                                            <i class="bi bi-trash-fill"></i>
+                                        </button>
+                                    </div>
+                                </td>
                             </tr>
                             @endforeach
 
                             @if($registeredVisitors->isEmpty())
                             <tr>
-                                <td colspan="3" class="text-center text-muted py-3">No registered visitors yet.</td>
+                                <td colspan="4" class="text-center text-muted py-3">No registered visitors yet.</td>
                             </tr>
                             @endif
                         </tbody>
@@ -528,125 +590,170 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // ===== CLICK TO ADD VISITOR =====
+    // ===== REGISTERED VISITOR ROW SELECTION =====
+    let selectedRV = null;
+
     document.querySelectorAll('.registered-visitor-row').forEach(function(row) {
-        row.addEventListener('click', function(e) {
-            // If already added or company-locked, do nothing
-            if (this.classList.contains('already-added')) return;
-            if (this.classList.contains('company-locked')) return;
-
-            // Remove any existing popup
-            document.querySelectorAll('.add-popup').forEach(p => p.remove());
-
-            // Get visitor data from the row
-            const name = this.getAttribute('data-name');
-            const nric = this.getAttribute('data-nric');
-            const company = this.getAttribute('data-company');
-            const clickedRow = this;
-
-            // Create the "Add" popup button
-            const popup = document.createElement('span');
-            popup.className = 'add-popup badge bg-success ms-2';
-            popup.style.cssText = 'cursor:pointer; font-size:0.85rem; padding:5px 12px;';
-            popup.innerText = '+ Add';
-
-            // When user clicks the "Add" button
-            popup.addEventListener('click', function(evt) {
-                evt.stopPropagation();
-
-                // Check if this NRIC is already in the form
-                const allNricInputs = document.querySelectorAll('input[name="nric_passport[]"]');
-                for (let i = 0; i < allNricInputs.length; i++) {
-                    if (allNricInputs[i].value.trim() === nric) {
-                        showErrorToast('This visitor is already added!');
-                        popup.remove();
-                        return;
-                    }
-                }
-
-                const blocks = document.querySelectorAll('.visitor-block');
-                let targetBlock = null;
-
-                for (let i = 0; i < blocks.length; i++) {
-                    const nricInput = blocks[i].querySelector('input[name="nric_passport[]"]');
-                    if (nricInput.value.trim() === '') {
-                        targetBlock = blocks[i];
-                        break;
-                    }
-                }
-
-                if (!targetBlock) {
-                    const addVisitorBtn = document.getElementById('add-visitor-btn');
-                    if (!addVisitorBtn.disabled) {
-                        addVisitorBtn.click();
-                        const allBlocks = document.querySelectorAll('.visitor-block');
-                        targetBlock = allBlocks[allBlocks.length - 1];
-                    } else {
-                        showErrorToast('Maximum 5 visitors reached!');
-                        return;
-                    }
-                }
-
-                // Fill in the visitor data — replace inputs with plain text + hidden inputs
-                const nricInput = targetBlock.querySelector('input[name="nric_passport[]"]');
-                const nameInput = targetBlock.querySelector('input[name="visitor_name[]"]');
-                const companyInput = targetBlock.querySelector('input[name="company_name[]"]');
-
-                [nricInput, nameInput, companyInput].forEach(input => {
-                    const value = input === nricInput ? nric : input === nameInput ? name : company;
-                    // Create hidden input to keep form submission working
-                    const hidden = document.createElement('input');
-                    hidden.type = 'hidden';
-                    hidden.name = input.name;
-                    hidden.value = value;
-                    // Create plain text display
-                    const span = document.createElement('span');
-                    span.className = 'fw-bold d-block fs-6';
-                    span.textContent = value;
-                    // Replace the visible input
-                    input.parentNode.insertBefore(hidden, input);
-                    input.parentNode.insertBefore(span, input);
-                    input.remove();
-                });
-
-                // Registered visitor block styling (change color codes here)
-                targetBlock.classList.remove('bg-light');
-                targetBlock.style.backgroundColor = '#599476';  // dark navy background
-                targetBlock.style.color = '#ffffff';             // white text
-                targetBlock.style.borderColor = '#16213e';       // border color
-                targetBlock.classList.add('registered-block');
-                targetBlock.querySelectorAll('.form-label, .visitor-number').forEach(el => { el.classList.remove('text-muted'); el.style.color = '#ffffff'; });
-
-                // Remove the popup
-                popup.remove();
-
-                // Gray out the row so it can't be added again
-                clickedRow.classList.add('already-added');
-                clickedRow.style.opacity = '0.4';
-                clickedRow.style.pointerEvents = 'none';
-
-                // Lock company filter after adding
-                updateCompanyFilter();
-
-                // When this visitor block is removed, re-enable the row and reset fields
-                const removeBtn = targetBlock.querySelector('.remove-visitor-btn');
-                if (removeBtn) {
-                    removeBtn.addEventListener('click', function() {
-                        clickedRow.classList.remove('already-added');
-                        clickedRow.style.opacity = '1';
-                        clickedRow.style.pointerEvents = '';
-                        // Re-check company lock after removal
-                        setTimeout(updateCompanyFilter, 50);
-                    });
-                }
-            });
-
-            // Append the popup next to the name
-            const nameCell = this.querySelector('td');
-            nameCell.appendChild(popup);
+        row.addEventListener('click', function() {
+            document.querySelectorAll('.registered-visitor-row').forEach(r => r.classList.remove('rv-selected'));
+            this.classList.add('rv-selected');
+            selectedRV = { id: this.dataset.id, name: this.dataset.name, nric: this.dataset.nric, company: this.dataset.company, row: this };
         });
     });
 
+    // Inline row button handlers
+    window.rvRowAdd = function(btn) {
+        const row = btn.closest('tr');
+        if (!row || btn.disabled || row.classList.contains('already-added') || row.classList.contains('company-locked')) return;
+        addVisitorToForm(row.dataset.name, row.dataset.nric, row.dataset.company, row);
+    };
+
+    window.rvRowEdit = function(btn) {
+        const row = btn.closest('tr');
+        document.getElementById('edit-visitor-name-input').value    = row.dataset.name;
+        document.getElementById('edit-visitor-company-input').value = row.dataset.company;
+        document.getElementById('edit-visitor-form').action = '/visitor/' + row.dataset.id;
+        new bootstrap.Modal(document.getElementById('editVisitorModal')).show();
+    };
+
+    window.rvRowDelete = function(btn) {
+        const row = btn.closest('tr');
+        document.getElementById('delete-visitor-name-display').textContent = row.dataset.name;
+        document.getElementById('delete-visitor-form').action = '/visitor/' + row.dataset.id;
+        new bootstrap.Modal(document.getElementById('deleteVisitorModal')).show();
+    };
+
+    function addVisitorToForm(name, nric, company, clickedRow) {
+        const allNricInputs = document.querySelectorAll('input[name="nric_passport[]"]');
+        for (let i = 0; i < allNricInputs.length; i++) {
+            if (allNricInputs[i].value.trim() === nric) {
+                showErrorToast('This visitor is already added!'); return;
+            }
+        }
+        const blocks = document.querySelectorAll('.visitor-block');
+        let targetBlock = null;
+        for (let i = 0; i < blocks.length; i++) {
+            const nricInput = blocks[i].querySelector('input[name="nric_passport[]"]');
+            if (nricInput && nricInput.value.trim() === '') { targetBlock = blocks[i]; break; }
+        }
+        if (!targetBlock) {
+            const addVisitorBtn = document.getElementById('add-visitor-btn');
+            if (!addVisitorBtn.disabled) {
+                addVisitorBtn.click();
+                const allBlocks = document.querySelectorAll('.visitor-block');
+                targetBlock = allBlocks[allBlocks.length - 1];
+            } else { showErrorToast('Maximum 5 visitors reached!'); return; }
+        }
+        const nricInput    = targetBlock.querySelector('input[name="nric_passport[]"]');
+        const nameInput    = targetBlock.querySelector('input[name="visitor_name[]"]');
+        const companyInput = targetBlock.querySelector('input[name="company_name[]"]');
+        [nricInput, nameInput, companyInput].forEach(input => {
+            const value = input === nricInput ? nric : input === nameInput ? name : company;
+            const hidden = document.createElement('input');
+            hidden.type = 'hidden'; hidden.name = input.name; hidden.value = value;
+            const span = document.createElement('span');
+            span.className = 'fw-bold d-block fs-6'; span.textContent = value;
+            input.parentNode.insertBefore(hidden, input);
+            input.parentNode.insertBefore(span, input);
+            input.remove();
+        });
+        targetBlock.classList.remove('bg-light');
+        targetBlock.style.backgroundColor = '#599476';
+        targetBlock.style.color = '#ffffff';
+        targetBlock.style.borderColor = '#16213e';
+        targetBlock.classList.add('registered-block');
+        targetBlock.querySelectorAll('.form-label, .visitor-number').forEach(el => { el.classList.remove('text-muted'); el.style.color = '#ffffff'; });
+        clickedRow.classList.add('already-added');
+        clickedRow.style.opacity = '0.5';
+        clickedRow.classList.remove('rv-selected');
+        // Disable the add button on the row actions
+        const addRowBtn = clickedRow.querySelector('.rv-action-btn.btn-add');
+        if (addRowBtn) addRowBtn.disabled = true;
+        selectedRV = null;
+        updateCompanyFilter();
+        const removeBtn = targetBlock.querySelector('.remove-visitor-btn');
+        if (removeBtn) {
+            removeBtn.addEventListener('click', function() {
+                clickedRow.classList.remove('already-added');
+                clickedRow.style.opacity = '1';
+                const addRowBtn = clickedRow.querySelector('.rv-action-btn.btn-add');
+                if (addRowBtn) addRowBtn.disabled = false;
+                setTimeout(updateCompanyFilter, 50);
+            });
+        }
+    }
+
+    // EDIT FORM submit — sync hidden inputs from visible inputs and submit
+    window.submitEditForm = function() {
+        const nameVal = document.getElementById('edit-visitor-name-input').value.trim();
+        const companyVal = document.getElementById('edit-visitor-company-input').value.trim();
+        
+        if (!nameVal || !companyVal) {
+            showErrorToast('Please fill in all required fields.');
+            return;
+        }
+        
+        document.getElementById('edit-visitor-name-hidden').value = nameVal;
+        document.getElementById('edit-visitor-company-hidden').value = companyVal;
+        document.getElementById('edit-visitor-form').submit();
+    };
+
 });
 </script>
+
+{{-- Edit Visitor Modal --}}
+<div class="modal fade" id="editVisitorModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="bi bi-pencil-fill me-2"></i>Edit Visitor</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body py-4">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Full Name</label>
+                    <input type="text" class="form-control" id="edit-visitor-name-input" placeholder="Full name" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Company</label>
+                    <input type="text" class="form-control" id="edit-visitor-company-input" placeholder="Company name" required>
+                </div>
+                <div class="alert alert-info py-2 small mb-0">
+                    <i class="bi bi-info-circle me-1"></i>NRIC cannot be changed. Changes apply to future visits only.
+                </div>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal"><i class="bi bi-x-lg me-1"></i>Cancel</button>
+                <button type="button" class="btn btn-primary px-4" onclick="submitEditForm()">
+                    <i class="bi bi-check-lg me-1"></i>Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Delete Visitor Modal --}}
+<div class="modal fade" id="deleteVisitorModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="bi bi-trash-fill me-2"></i>Delete Visitor</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size:2.5rem;"></i>
+                <p class="mt-3 mb-1">Permanently delete visitor:</p>
+                <h5 class="mb-2" id="delete-visitor-name-display"></h5>
+                <p class="text-muted small mb-0">If this visitor has past visit records, deletion will be blocked.</p>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal"><i class="bi bi-x-lg me-1"></i>Cancel</button>
+                <button type="button" class="btn btn-danger px-4" onclick="document.getElementById('delete-visitor-form').submit()">
+                    <i class="bi bi-trash-fill me-1"></i>Yes, Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
