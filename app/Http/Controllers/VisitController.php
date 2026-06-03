@@ -22,7 +22,9 @@ class VisitController extends Controller
             $q->where('status', 'active');
         })->pluck('nric_passport')->toArray();
 
-        return view('visitor', compact('companies', 'employees', 'availablePasses', 'registeredVisitors', 'activeVisitorNrics'));
+        $canOverrideDate = auth()->user()->canOverrideDate();
+
+        return view('visitor', compact('companies', 'employees', 'availablePasses', 'registeredVisitors', 'activeVisitorNrics', 'canOverrideDate'));
     }
 
     public function store(Request $request)

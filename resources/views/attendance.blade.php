@@ -317,6 +317,13 @@
             <div class="modal-body text-center py-4">
                 <p class="mb-1">Clocking in:</p>
                 <h5 class="mb-3" id="modal-clockin-name"></h5>
+                @if($canOverrideDate)
+                <div class="mb-3">
+                    <label class="form-label text-muted small mb-1"><i class="bi bi-calendar-event me-1"></i>Date</label>
+                    <input type="date" class="form-control mx-auto" id="modal-clockin-date" style="max-width:200px; text-align:center;">
+                    <small class="text-warning d-block mt-1"><i class="bi bi-shield-fill me-1"></i>Supervisor override — any date allowed.</small>
+                </div>
+                @endif
                 <input type="text" class="form-control mx-auto" id="modal-clockin-time"
                     style="max-width:200px; font-size:1.5rem; text-align:center;" placeholder="HH:MM" maxlength="5" required>
                 <small class="text-muted mt-2 d-block">24-hour format (e.g. 08:30, 14:00). Defaults to current time.</small>
@@ -343,6 +350,13 @@
             <div class="modal-body text-center py-4">
                 <p class="mb-1">Clocking out:</p>
                 <h5 class="mb-3" id="modal-clockout-name"></h5>
+                @if($canOverrideDate)
+                <div class="mb-3">
+                    <label class="form-label text-muted small mb-1"><i class="bi bi-calendar-event me-1"></i>Date</label>
+                    <input type="date" class="form-control mx-auto" id="modal-clockout-date" style="max-width:200px; text-align:center;">
+                    <small class="text-warning d-block mt-1"><i class="bi bi-shield-fill me-1"></i>Supervisor override — any date allowed.</small>
+                </div>
+                @endif
                 <input type="text" class="form-control mx-auto" id="modal-clockout-time"
                     style="max-width:200px; font-size:1.5rem; text-align:center;" placeholder="HH:MM" maxlength="5" required>
                 <small class="text-muted mt-2 d-block">24-hour format (e.g. 08:30, 14:00). Defaults to current time.</small>
@@ -366,12 +380,23 @@
             <div class="modal-body text-center py-4">
                 <p class="mb-1">Correcting clock-in for:</p>
                 <h5 class="mb-3" id="modal-edit-name"></h5>
+                @if($canOverrideDate)
+                <div class="mb-3">
+                    <label class="form-label text-muted small mb-1"><i class="bi bi-calendar-event me-1"></i>Date</label>
+                    <input type="date" class="form-control mx-auto" id="modal-edit-date" style="max-width:200px; text-align:center;">
+                    <small class="text-warning d-block mt-1"><i class="bi bi-shield-fill me-1"></i>Supervisor override — any date allowed.</small>
+                </div>
+                @else
+                <div class="alert alert-info py-2 px-3 mt-0 mb-3 mx-auto" style="max-width:280px; font-size:0.82rem;">
+                    <i class="bi bi-info-circle me-1"></i>The date will remain <strong id="modal-edit-date-display"></strong>.
+                </div>
+                @endif
                 <input type="text" class="form-control mx-auto" id="modal-edit-time"
                     style="max-width:200px; font-size:1.5rem; text-align:center;" placeholder="HH:MM" maxlength="5" required>
                 <small class="text-muted mt-2 d-block">Enter the correct time (24-hour format).</small>
-                <div class="alert alert-info py-2 px-3 mt-3 mb-0 mx-auto" style="max-width:280px; font-size:0.82rem;">
-                    <i class="bi bi-info-circle me-1"></i>The date will remain <strong id="modal-edit-date-display"></strong>.
-                </div>
+                @if(!$canOverrideDate)
+                {{-- Date display for non-override users shown above --}}
+                @endif
             </div>
             <div class="modal-footer justify-content-center">
                 <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal"><i class="bi bi-x-lg me-1"></i>Cancel</button>
@@ -606,6 +631,9 @@
         const now = new Date();
         clockinTimeInput.value = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
         deviationWarning.style.display = 'none';
+        // Default date picker to today
+        const dateEl = document.getElementById('modal-clockin-date');
+        if (dateEl) dateEl.value = now.toISOString().slice(0,10);
     });
     clockinTimeInput.addEventListener('input', function() {
         const val = this.value;
@@ -619,8 +647,12 @@
     document.getElementById('confirm-clockin-btn').addEventListener('click', function() {
         const timeVal = clockinTimeInput.value;
         if (!isValidTime(timeVal)) { showErrorToast('Please enter a valid time in HH:MM format (e.g. 08:30, 14:00)'); return; }
-        const today = new Date();
-        const date = today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+        const dateEl = document.getElementById('modal-clockin-date');
+        const date = dateEl ? dateEl.value : (function(){
+            const t = new Date();
+            return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
+        })();
+        if (!date) { showErrorToast('Please select a date.'); return; }
         document.getElementById('clock_in_time').value = date+'T'+timeVal;
         document.getElementById('clockin-form').submit();
     });
@@ -634,12 +666,19 @@
         document.getElementById('modal-clockout-name').textContent = document.getElementById('selected-display').textContent;
         const now = new Date();
         document.getElementById('modal-clockout-time').value = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+        // Default date picker to today
+        const dateEl = document.getElementById('modal-clockout-date');
+        if (dateEl) dateEl.value = now.toISOString().slice(0,10);
     });
     document.getElementById('confirm-clockout-btn').addEventListener('click', function() {
         const timeVal = document.getElementById('modal-clockout-time').value;
         if (!isValidTime(timeVal)) { showErrorToast('Please enter a valid time in HH:MM format (e.g. 08:30, 14:00)'); return; }
-        const today = new Date();
-        const date = today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+        const dateEl = document.getElementById('modal-clockout-date');
+        const date = dateEl ? dateEl.value : (function(){
+            const t = new Date();
+            return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
+        })();
+        if (!date) { showErrorToast('Please select a date.'); return; }
         const form = document.getElementById('clockout-form');
         form.action = '/attendance/'+document.getElementById('selected-attendance-id').value+'/clock-out';
         document.getElementById('clock_out_time').value = date+'T'+timeVal;
@@ -651,17 +690,26 @@
         if (this.disabled) return;
         document.getElementById('modal-edit-name').textContent = selectedAttendanceName;
         document.getElementById('modal-edit-time').value = selectedAttendanceClockin;
-        const d = new Date(selectedAttendanceDate+'T00:00:00');
-        document.getElementById('modal-edit-date-display').textContent =
-            d.toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'});
+        // For non-override users: show existing date as text
+        const dateDisplayEl = document.getElementById('modal-edit-date-display');
+        if (dateDisplayEl) {
+            const d = new Date(selectedAttendanceDate+'T00:00:00');
+            dateDisplayEl.textContent = d.toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'});
+        }
+        // For override users: default the date picker to the existing record's date
+        const datePickerEl = document.getElementById('modal-edit-date');
+        if (datePickerEl) datePickerEl.value = selectedAttendanceDate;
         new bootstrap.Modal(document.getElementById('editCheckinModal')).show();
     });
     document.getElementById('confirm-edit-checkin-btn').addEventListener('click', function() {
         const timeVal = document.getElementById('modal-edit-time').value;
         if (!isValidTime(timeVal)) { showErrorToast('Please enter a valid time in HH:MM format (e.g. 08:30, 14:00)'); return; }
+        const datePickerEl = document.getElementById('modal-edit-date');
+        const date = datePickerEl ? datePickerEl.value : selectedAttendanceDate;
+        if (!date) { showErrorToast('Please select a date.'); return; }
         const form = document.getElementById('edit-checkin-form');
         form.action = '/attendance/'+selectedAttendanceId+'/update-checkin';
-        document.getElementById('edit_checkin_time').value = selectedAttendanceDate+'T'+timeVal;
+        document.getElementById('edit_checkin_time').value = date+'T'+timeVal;
         form.submit();
     });
 

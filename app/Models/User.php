@@ -34,4 +34,14 @@ class User extends Authenticatable
     {
         return $this->role === 'admin';
     }
+
+    public function isSupervisor(): bool
+    {
+        return $this->role === 'supervisor';
+    }
+
+    public function canOverrideDate(): bool
+    {
+        return $this->role === 'supervisor' || $this->role === 'admin';
+    }
 }

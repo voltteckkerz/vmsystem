@@ -23,10 +23,6 @@ Route::get('/report', [App\Http\Controllers\ReportController::class, 'index'])->
 
 Route::get('/report/print/{filename}', [App\Http\Controllers\ReportController::class,'print'])->name('report.print')->middleware('auth');
 
-// Import Routes
-Route::get('/import', [App\Http\Controllers\ImportController::class, 'index'])->name('import.index')->middleware('auth');
-Route::post('/import', [App\Http\Controllers\ImportController::class, 'import'])->name('import.upload')->middleware('auth');
-
 
 // Dashboard Route
 Route::get('/dashboard', function () {

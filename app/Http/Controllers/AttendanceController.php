@@ -27,7 +27,9 @@ class AttendanceController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('attendance', compact('employees', 'liveAttendances'));
+        $canOverrideDate = auth()->user()->canOverrideDate();
+
+        return view('attendance', compact('employees', 'liveAttendances', 'canOverrideDate'));
     }
 
     // Clock In

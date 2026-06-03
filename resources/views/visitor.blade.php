@@ -224,6 +224,13 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body text-center py-4">
+                @if($canOverrideDate)
+                <div class="mb-3">
+                    <label class="form-label text-muted small mb-1"><i class="bi bi-calendar-event me-1"></i>Date</label>
+                    <input type="date" class="form-control mx-auto" id="modal-checkin-date" style="max-width:200px; text-align:center;">
+                    <small class="text-warning d-block mt-1"><i class="bi bi-shield-fill me-1"></i>Supervisor override &mdash; any date allowed.</small>
+                </div>
+                @endif
                 <p class="mb-3">Select the check-in time:</p>
                 <input type="text" class="form-control mx-auto" id="modal-checkin-time" style="max-width: 200px; font-size: 1.5rem; text-align: center;" placeholder="HH:MM" maxlength="5" pattern="([01]\d|2[0-3]):[0-5]\d" required>
                 <small class="text-muted mt-2 d-block">24-hour format (e.g. 08:30, 14:00). Defaults to current time.</small>
@@ -265,12 +272,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const modalTimeInput = document.getElementById('modal-checkin-time');
     formatTimeInput(modalTimeInput);
 
-    // When the modal opens, auto-set the time to right now
+    // When the modal opens, auto-set the time to right now (and date to today for override users)
     document.getElementById('checkinModal').addEventListener('show.bs.modal', function() {
         const now = new Date();
         const hours = String(now.getHours()).padStart(2, '0');
         const minutes = String(now.getMinutes()).padStart(2, '0');
         modalTimeInput.value = hours + ':' + minutes;
+        const dateEl = document.getElementById('modal-checkin-date');
+        if (dateEl) dateEl.value = now.toISOString().slice(0, 10);
     });
 
     // ===== VALIDATION HELPER =====
@@ -419,11 +428,13 @@ document.addEventListener('DOMContentLoaded', function() {
             showErrorToast('Please enter a valid time in HH:MM format (e.g. 08:30, 14:00)');
             return;
         }
-        const today = new Date();
-        const year = today.getFullYear();
-        const month = String(today.getMonth() + 1).padStart(2, '0');
-        const day = String(today.getDate()).padStart(2, '0');
-        const fullDateTime = year + '-' + month + '-' + day + 'T' + timeVal;
+        const dateEl = document.getElementById('modal-checkin-date');
+        const date = dateEl ? dateEl.value : (function(){
+            const t = new Date();
+            return t.getFullYear() + '-' + String(t.getMonth()+1).padStart(2,'0') + '-' + String(t.getDate()).padStart(2,'0');
+        })();
+        if (!date) { showErrorToast('Please select a date.'); return; }
+        const fullDateTime = date + 'T' + timeVal;
         document.getElementById('manual_check_in_time').value = fullDateTime;
         document.getElementById('visitor-form').submit();
     });

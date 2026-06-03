@@ -200,12 +200,6 @@
                         </li>
                         @endforeach
 
-                        {{-- Admin-only Import link --}}
-                        @if(auth()->user()->isAdmin())
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('import.index') ? 'nav-active' : '' }}" href="{{ route('import.index') }}">Import</a>
-                        </li>
-                        @endif
                     </ul>
                     @endauth
                     <!-- *** END OF CENTER LINKS *** -->
