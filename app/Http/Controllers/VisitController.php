@@ -67,7 +67,7 @@ class VisitController extends Controller
             $nric = str_replace('-', '', $rawNric);
             // Find or create the specific company for this visitor
             $company = Company::firstOrCreate(['name' => $request->company_name[$index]]);
-            
+
             // Check if NRIC already exists with different name or company
             $existing = Visitor::where('nric_passport', $nric)->first();
             if ($existing) {
@@ -89,20 +89,22 @@ class VisitController extends Controller
                     'company_id' => $company->id
                 ]
             );
-            
+
             $pass_id = $request->pass_id[$index];
-            
-            // Attach to the pivot table
+
+            // Attach to the pivot table — snapshot name & company at time of visit
             $visit->visitors()->attach($visitor->id, [
-                'pass_id' => $pass_id,
+                'pass_id'         => $pass_id,
+                'visitor_name'    => $visitor->name,
+                'visitor_company' => $company->name,
             ]);
-            
+
             // Mark the pass as in-use
             $pass = Pass::find($pass_id);
             $pass->status = 'in_use';
             $pass->save();
         }
-       
+
         return redirect('/dashboard')->with('success', 'Visitors Successfully Registered!');
     }
 
@@ -110,7 +112,7 @@ class VisitController extends Controller
     {
         $visit = Visit::findOrFail($id);
 
-        $checkIn = \Carbon\Carbon::parse($visit->manual_check_in_time);
+        $checkIn  = \Carbon\Carbon::parse($visit->manual_check_in_time);
         $checkOut = \Carbon\Carbon::parse($request->manual_check_out_time);
 
         // Reject if checkout time is before or equal to check-in time
@@ -136,9 +138,9 @@ class VisitController extends Controller
 
         return redirect('/dashboard')->with('success', 'Visit Checked Out Successfully!');
     }
-        
 
-    // Edit visitor name/company
+
+    // Edit visitor name/company — only affects future visits (past pivot snapshots are preserved)
     public function updateVisitor(Request $request, $id)
     {
         $visitor = Visitor::findOrFail($id);
@@ -154,7 +156,10 @@ class VisitController extends Controller
         $visitor->company_id = $company->id;
         $visitor->save();
 
-        return redirect()->back()->with('success', "Visitor \"{$visitor->name}\" updated successfully.");
+        // Past visit pivot rows keep their original visitor_name / visitor_company snapshots.
+        // Only the visitors table is updated — future visits will use the new name/company.
+
+        return redirect()->back()->with('success', "Visitor \"{$visitor->name}\" updated successfully. Past visit records are unchanged.");
     }
 
     // Delete visitor — blocked if they have any visit history
@@ -208,7 +213,7 @@ class VisitController extends Controller
     {
         $cleanNric = str_replace('-', '', $nric);
         $visitor = \App\Models\Visitor::with('company')->where('nric_passport', $cleanNric)->first();
-        
+
         return response()->json($visitor);
     }
 

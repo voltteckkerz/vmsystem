@@ -2,44 +2,43 @@
 
 @section('content')
 <style>
-    /* ===== REPORT TYPE TOGGLE BUTTONS ===== */
-    .report-type-btn {
-        display: flex;
-        flex-direction: column;
+    /* ===== REPORT NAV TABS ===== */
+    .report-nav { border-bottom: 3px solid #dee2e6; gap: 6px; }
+    .report-nav .nav-item { margin-bottom: -3px; }
+    .report-nav .nav-link {
+        display: inline-flex;
         align-items: center;
-        justify-content: center;
         gap: 8px;
-        padding: 18px 32px;
-        border-radius: 12px;
-        border: 2.5px solid #dee2e6;
-        background: #fff;
-        color: #6c757d;
-        font-weight: 600;
+        padding: 12px 28px;
+        font-weight: 700;
         font-size: 0.95rem;
+        color: #6c757d;
+        border: 2px solid transparent;
+        border-bottom: 3px solid transparent;
+        border-radius: 8px 8px 0 0;
+        background: #f8f9fa;
+        transition: all 0.18s;
         cursor: pointer;
-        transition: all 0.2s ease;
-        min-width: 170px;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-        text-decoration: none;
     }
-    .report-type-btn i { font-size: 1.6rem; transition: transform 0.2s; }
-    .report-type-btn:hover {
-        border-color: #0d6efd;
+    .report-nav .nav-link i { font-size: 1.1rem; }
+    .report-nav .nav-link:hover {
         color: #0d6efd;
-        box-shadow: 0 4px 16px rgba(13,110,253,0.13);
-        transform: translateY(-2px);
+        background: #e8f0fe;
+        border-color: #c4d4f8 #c4d4f8 transparent;
     }
-    .report-type-btn.active-visitor {
-        border-color: #0d6efd;
-        background: linear-gradient(135deg, #e8f0fe 0%, #f0f6ff 100%);
-        color: #0d6efd;
-        box-shadow: 0 4px 16px rgba(13,110,253,0.18);
+    .report-nav .nav-link.active-visitor {
+        color: #fff;
+        background: #0d6efd;
+        border-color: #0d6efd #0d6efd #0d6efd;
+        border-bottom-color: #0d6efd;
+        box-shadow: 0 -2px 10px rgba(13,110,253,0.2);
     }
-    .report-type-btn.active-attendance {
-        border-color: #28a745;
-        background: linear-gradient(135deg, #e6f9ec 0%, #f0fdf4 100%);
-        color: #28a745;
-        box-shadow: 0 4px 16px rgba(40,167,69,0.18);
+    .report-nav .nav-link.active-attendance {
+        color: #fff;
+        background: #28a745;
+        border-color: #28a745 #28a745 #28a745;
+        border-bottom-color: #28a745;
+        box-shadow: 0 -2px 10px rgba(40,167,69,0.2);
     }
     /* ===== PRINT BUTTONS ===== */
     .print-btn {
@@ -65,23 +64,27 @@
 
 <div class="container">
 
-    {{-- ===== REPORT TYPE SELECTOR ===== --}}
-    <div class="d-flex justify-content-center gap-3 mb-4">
-        <button type="button"
-            class="report-type-btn {{ request('tab', 'visitor') === 'visitor' ? 'active-visitor' : '' }}"
-            id="btn-visitor-tab"
-            onclick="switchTab('visitor')">
-            <i class="bi bi-people-fill"></i>
-            Visit Report
-        </button>
-        <button type="button"
-            class="report-type-btn {{ request('tab', 'visitor') === 'attendance' ? 'active-attendance' : '' }}"
-            id="btn-attendance-tab"
-            onclick="switchTab('attendance')">
-            <i class="bi bi-clock-history"></i>
-            Attendance Report
-        </button>
-    </div>
+    {{-- ===== REPORT TYPE TABS ===== --}}
+    <ul class="nav report-nav" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {{ request('tab', 'visitor') === 'visitor' ? 'active-visitor' : '' }}"
+                id="btn-visitor-tab"
+                type="button"
+                onclick="switchTab('visitor')">
+                <i class="bi bi-people-fill"></i>
+                Visit Report
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {{ request('tab', 'visitor') === 'attendance' ? 'active-attendance' : '' }}"
+                id="btn-attendance-tab"
+                type="button"
+                onclick="switchTab('attendance')">
+                <i class="bi bi-clock-history"></i>
+                Attendance Report
+            </button>
+        </li>
+    </ul>
 
     {{-- ===== DATE RANGE FILTER ===== --}}
     <div class="card shadow-sm border-0 mb-4" style="border-radius:10px;">
@@ -144,9 +147,9 @@
                         @foreach($visit->visitors as $visitor)
                         <tr>
                             <td>{{ $counter++ }}</td>
-                            <td>{{ $visitor->name }}</td>
+                            <td>{{ $visitor->pivot->visitor_name ?? $visitor->name }}</td>
                             <td>{{ \Carbon\Carbon::parse($visit->manual_check_in_time)->format('d/m/Y') }}</td>
-                            <td>{{ $visitor->company->name ?? '_' }}</td>
+                            <td>{{ $visitor->pivot->visitor_company ?? ($visitor->company->name ?? '_') }}</td>
                             <td>{{ \Carbon\Carbon::parse($visit->manual_check_in_time)->format('h:i A') }}</td>
                             <td>
                                 @if($visit->manual_check_out_time)
@@ -227,14 +230,11 @@
 
 <script>
     function switchTab(tab) {
-        // Update hidden input so filter form remembers the tab
         document.getElementById('activeTab').value = tab;
 
-        // Toggle tab pane visibility
         document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('show', 'active'));
         document.getElementById(tab + '-tab').classList.add('show', 'active');
 
-        // Update toggle button styles
         const visitorBtn    = document.getElementById('btn-visitor-tab');
         const attendanceBtn = document.getElementById('btn-attendance-tab');
         visitorBtn.classList.remove('active-visitor', 'active-attendance');

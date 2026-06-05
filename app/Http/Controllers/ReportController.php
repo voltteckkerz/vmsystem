@@ -32,7 +32,9 @@ class ReportController extends Controller
         if ($name) {
             $visits->each(function ($visit) use ($name) {
                 $filtered = $visit->visitors->filter(function ($visitor) use ($name) {
-                    return str_contains(strtolower($visitor->name), strtolower($name));
+                    // Match against the snapshot name stored in the pivot
+                    $displayName = $visitor->pivot->visitor_name ?? $visitor->name;
+                    return str_contains(strtolower($displayName), strtolower($name));
                 });
                 $visit->setRelation('visitors', $filtered);
             });
@@ -60,7 +62,7 @@ class ReportController extends Controller
                 ->get();
 
                 return view('report', compact('visits', 'attendances', 'from_date', 'to_date'));
-                
+
     }
         public function print(Request $request, string $filename)
     {
@@ -84,13 +86,15 @@ class ReportController extends Controller
                     $visitors = $visit->visitors;
                     if ($name) {
                         $visitors = $visitors->filter(function ($visitor) use ($name) {
-                            return str_contains(strtolower($visitor->name), strtolower($name));
+                            $displayName = $visitor->pivot->visitor_name ?? $visitor->name;
+                            return str_contains(strtolower($displayName), strtolower($name));
                         });
                     }
                     return $visitors->map(fn($visitor) => (object)[
-                        'name'     => $visitor->name,
+                        // Use pivot snapshot so editing a visitor does not change past reports
+                        'name'     => $visitor->pivot->visitor_name    ?? $visitor->name,
+                        'company'  => $visitor->pivot->visitor_company ?? ($visitor->company->name ?? '-'),
                         'date'     => $visit->manual_check_in_time,
-                        'company'  => $visitor->company->name ?? '-',
                         'time_in'  => $visit->manual_check_in_time,
                         'time_out' => $visit->manual_check_out_time,
                         'pass_id'  => $visitor->pivot->pass_id ?? null,

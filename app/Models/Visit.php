@@ -17,7 +17,7 @@ class Visit extends Model
     public function visitors()
     {
         return $this->belongsToMany(Visitor::class, 'visit_visitors')
-            ->withPivot('pass_id')
+            ->withPivot('pass_id', 'visitor_name', 'visitor_company')
             ->withTimestamps();
     }
 }

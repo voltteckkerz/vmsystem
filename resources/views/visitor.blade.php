@@ -719,7 +719,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <input type="text" class="form-control" id="edit-visitor-company-input" placeholder="Company name" required>
                 </div>
                 <div class="alert alert-info py-2 small mb-0">
-                    <i class="bi bi-info-circle me-1"></i>NRIC cannot be changed. Changes apply to future visits only.
+                    <i class="bi bi-info-circle me-1"></i>NRIC cannot be changed. Past visit records will keep the original name &amp; company.
                 </div>
             </div>
             <div class="modal-footer justify-content-center">
