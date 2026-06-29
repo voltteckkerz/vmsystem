@@ -1,10 +1,28 @@
 @extends('layouts.app')
 
 @section('content')
+<style>
+    body {
+        background-image: url('{{ asset(str_replace(' ', '%20', 'images/login background.jpg')) }}?v={{ filemtime(public_path('images/login background.jpg')) }}');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+    }
+    .table-rounded-wrapper {
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid #dee2e6;
+    }
+    .table-rounded-wrapper table {
+        margin-bottom: 0;
+    }
+</style>
 <div class="container">
     <h3>Live Visitor Status</h3>
-    
-    <table class="table table-striped table-bordered mt-3">
+
+    <div class="table-rounded-wrapper mt-3">
+    <table class="table table-striped table-bordered mb-0">
         <thead class="table-dark">
             <tr>
                 <th>Pass No.</th>
@@ -79,6 +97,7 @@
             @endif
         </tbody>
     </table>
+    </div>
 </div>
 
 {{-- All Checkout Modals are placed OUTSIDE the table so the browser doesn't break them --}}
