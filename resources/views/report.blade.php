@@ -2,6 +2,13 @@
 
 @section('content')
 <style>
+    body {
+        background-image: url('{{ asset(str_replace(' ', '%20', 'images/login background.jpg')) }}?v={{ filemtime(public_path('images/login background.jpg')) }}');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+    }
     /* ===== REPORT NAV TABS ===== */
     .report-nav { border-bottom: 3px solid #dee2e6; gap: 6px; }
     .report-nav .nav-item { margin-bottom: -3px; }

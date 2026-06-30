@@ -15,13 +15,24 @@
             margin: 0;
             font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 24px;
+            flex-direction: column;
             background-image: url('{{ asset(str_replace(' ', '%20', 'images/login background.jpg')) }}?v={{ filemtime(public_path('images/login background.jpg')) }}');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
+        }
+        .login-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        .login-footer {
+            text-align: center;
+            padding: 12px;
+            font-size: 0.85rem;
+            color: rgba(22, 24, 29, 0.65);
         }
         .login-wrapper {
             width: 100%;
@@ -131,54 +142,60 @@
     </style>
 </head>
 <body>
-    <div class="login-wrapper">
-        <div class="login-hero">
-            <p class="login-logo">{{ config('app.name', 'VMSYSTEM') }}</p>
-            <h1>{{ __('Welcome!') }}</h1>
-        </div>
-
-        <form method="POST" action="{{ route('login') }}">
-            @csrf
-
-            <div class="login-card">
-                <div class="mb-field">
-                    <label for="email" class="form-label">{{ __('Email Address') }}<span class="required">*</span></label>
-                    <div class="input-icon-group">
-                        <i class="bi bi-envelope"></i>
-                        <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" placeholder="you@example.com" required autocomplete="email" autofocus>
-                    </div>
-                    @error('email')
-                        <span class="invalid-feedback d-block" role="alert">
-                            <strong>{{ $message }}</strong>
-                        </span>
-                    @enderror
-                </div>
-
-                <div class="mb-field">
-                    <label for="password" class="form-label">{{ __('Password') }}<span class="required">*</span></label>
-                    <div class="input-icon-group">
-                        <i class="bi bi-lock"></i>
-                        <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" placeholder="••••••••" required autocomplete="current-password">
-                    </div>
-                    @error('password')
-                        <span class="invalid-feedback d-block" role="alert">
-                            <strong>{{ $message }}</strong>
-                        </span>
-                    @enderror
-                </div>
-
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
-                    <label class="form-check-label" for="remember">
-                        {{ __('Remember Me') }}
-                    </label>
-                </div>
+    <div class="login-content">
+        <div class="login-wrapper">
+            <div class="login-hero">
+                <p class="login-logo">{{ config('app.name', 'VMSYSTEM') }}</p>
+                <h1>{{ __('Welcome!') }}</h1>
             </div>
 
-            <button type="submit" class="btn-login">
-                {{ __('Sign In') }} <i class="bi bi-arrow-right"></i>
-            </button>
-        </form>
+            <form method="POST" action="{{ route('login') }}">
+                @csrf
+
+                <div class="login-card">
+                    <div class="mb-field">
+                        <label for="email" class="form-label">{{ __('Email Address') }}<span class="required">*</span></label>
+                        <div class="input-icon-group">
+                            <i class="bi bi-envelope"></i>
+                            <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" placeholder="you@example.com" required autocomplete="email" autofocus>
+                        </div>
+                        @error('email')
+                            <span class="invalid-feedback d-block" role="alert">
+                                <strong>{{ $message }}</strong>
+                            </span>
+                        @enderror
+                    </div>
+
+                    <div class="mb-field">
+                        <label for="password" class="form-label">{{ __('Password') }}<span class="required">*</span></label>
+                        <div class="input-icon-group">
+                            <i class="bi bi-lock"></i>
+                            <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" placeholder="••••••••" required autocomplete="current-password">
+                        </div>
+                        @error('password')
+                            <span class="invalid-feedback d-block" role="alert">
+                                <strong>{{ $message }}</strong>
+                            </span>
+                        @enderror
+                    </div>
+
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
+                        <label class="form-check-label" for="remember">
+                            {{ __('Remember Me') }}
+                        </label>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-login">
+                    {{ __('Sign In') }} <i class="bi bi-arrow-right"></i>
+                </button>
+            </form>
+        </div>
     </div>
+
+    <footer class="login-footer">
+        &copy; {{ date('Y') }} Lembah Sari Sdn Bhd. All rights reserved.
+    </footer>
 </body>
 </html>

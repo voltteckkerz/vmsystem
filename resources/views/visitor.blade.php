@@ -2,6 +2,13 @@
 
 @section('content')
 <style>
+    body {
+        background-image: url('{{ asset(str_replace(' ', '%20', 'images/login background.jpg')) }}?v={{ filemtime(public_path('images/login background.jpg')) }}');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+    }
     /* Validation error styles */
     .is-invalid {
         border-color: #dc3545 !important;
@@ -54,7 +61,7 @@
 
         {{-- ===== LEFT COLUMN: REGISTRATION FORM ===== --}}
         <div class="col-md-7">
-            <div class="card shadow-sm border-0" style="border-radius: 10px;">
+            <div class="card shadow-sm border-0" style="border-radius: 10px; overflow: hidden;">
                 <div class="card-header bg-white border-0 pt-4 pb-2">
                     <h4 class="mb-0"><b>Register Visitor(s)</b></h4>
                 </div>
@@ -145,7 +152,7 @@
 
         {{-- ===== RIGHT COLUMN: REGISTERED VISITORS ===== --}}
         <div class="col-md-5">
-            <div class="card shadow-sm border-0 mb-4" style="border-radius: 10px;">
+            <div class="card shadow-sm border-0 mb-4" style="border-radius: 10px; overflow: hidden;">
                 <div class="card-header bg-white border-0 pt-4 pb-2">
                     <h5 class="mb-3"><b>Registered Visitors</b></h5>
                     <input type="text" class="form-control" id="visitor-search" placeholder="Search by NRIC or Name...">

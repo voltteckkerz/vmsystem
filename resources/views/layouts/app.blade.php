@@ -22,17 +22,59 @@
 <script src="{{ asset('js/app.js') }}" defer></script>
 
     <style>
-        .nav-active {
-            background-color: rgba(0, 0, 0, 0.08);
-            border-radius: 8px;
-            font-weight: 600;
-            color: #005eeb !important;
+        /* Pill-style nav row — links centered between the brand and the auth control */
+        .topbar-nav-wrap {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            gap: 8px;
         }
-        /* Navbar Stats Sub-bar */
-        .navbar-stats-bar {
-            background: #f4f6fb;
-            border-bottom: 1px solid #e2e6ef;
-            padding: 5px 0;
+        .nav-pills-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            flex: 1;
+        }
+        .nav-auth {
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        @media (max-width: 767.98px) {
+            .topbar-nav-wrap {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .nav-auth {
+                justify-content: center;
+                margin-top: 8px;
+            }
+        }
+        .nav-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 18px;
+            border-radius: 999px;
+            background: #f1f1ef;
+            color: #16181d;
+            font-weight: 600;
+            font-size: 0.88rem;
+            text-decoration: none;
+            transition: background 0.15s ease, color 0.15s ease;
+        }
+        .nav-pill:hover {
+            background: #e4e4e0;
+            color: #16181d;
+        }
+        .nav-pill.nav-active {
+            background: #16181d;
+            color: #fff;
+        }
+        .nav-pill.nav-active:hover {
+            background: #16181d;
+            color: #fff;
         }
         .navbar-stats-capsule {
             display: flex;
@@ -40,6 +82,7 @@
             justify-content: center;
             gap: 6px;
             flex-wrap: wrap;
+            padding: 8px 0;
         }
         .nav-stat-badge {
             display: flex;
@@ -80,43 +123,44 @@
                 display: none;
             }
         }
-        /* Toast notification styles (always available for client-side use) */
+        /* Toast notification styles — iPhone-style notification banner (always available for client-side use) */
         .vms-toast {
             position: fixed;
-            top: 24px;
-            right: 24px;
+            top: var(--toast-top, 16px);
+            left: 50%;
+            right: auto;
+            transform: translateX(-50%);
             z-index: 99999;
-            min-width: 340px;
-            max-width: 440px;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.18);
-            animation: vmsSlideIn 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-            backdrop-filter: blur(8px);
+            width: calc(100% - 32px);
+            max-width: 400px;
+            border-radius: 26px;
+            box-shadow: 0 14px 34px rgba(0,0,0,0.22);
+            animation: vmsSlideIn 0.55s cubic-bezier(0.18, 1.24, 0.4, 1) forwards;
         }
         .vms-toast.toast-success {
-            background: linear-gradient(135deg, #16a34a, #15803d);
+            background: #d7f24a;
         }
         .vms-toast.toast-error {
-            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            background: #ffb4ab;
         }
         .vms-toast-body {
             display: flex;
             align-items: center;
             gap: 14px;
-            padding: 16px 20px;
-            color: #fff;
+            padding: 14px 16px;
+            color: #16181d;
         }
         .vms-toast-icon {
-            font-size: 1.6rem;
+            font-size: 1.3rem;
             flex-shrink: 0;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(255,255,255,0.2);
+            background: #16181d;
+            color: #fff;
         }
         .vms-toast-text {
             flex: 1;
@@ -127,7 +171,7 @@
         .vms-toast-close {
             background: none;
             border: none;
-            color: rgba(255,255,255,0.7);
+            color: rgba(22,24,29,0.45);
             font-size: 1.1rem;
             cursor: pointer;
             padding: 4px;
@@ -135,90 +179,78 @@
             transition: all 0.2s;
         }
         .vms-toast-close:hover {
-            color: #fff;
-            background: rgba(255,255,255,0.15);
+            color: #16181d;
+            background: rgba(22,24,29,0.1);
         }
         .vms-toast-progress {
-            height: 3px;
-            background: rgba(255,255,255,0.3);
-        }
-        .vms-toast-progress-bar {
-            height: 100%;
-            background: rgba(255,255,255,0.7);
-            animation: vmsProgress 4s linear forwards;
+            display: none;
         }
         .vms-toast.hide {
-            animation: vmsSlideOut 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            animation: vmsSlideOut 0.35s cubic-bezier(0.4, 0, 0.6, 1) forwards;
         }
         @keyframes vmsSlideIn {
-            from { transform: translateX(120%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+            from { transform: translateX(-50%) translateY(-150%); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
         }
         @keyframes vmsSlideOut {
-            from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(120%); opacity: 0; }
+            from { transform: translateX(-50%) translateY(0); opacity: 1; }
+            to { transform: translateX(-50%) translateY(-150%); opacity: 0; }
         }
-        @keyframes vmsProgress {
-            from { width: 100%; }
-            to { width: 0%; }
+        html, body {
+            height: 100%;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+        }
+        #app {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            flex: 1;
+        }
+        main {
+            flex: 1;
         }
     </style>
 </head>
 <body>
     <div id="app">
-        <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
-            <div class="container">
-                <a class="navbar-brand">
-                    {{ config('app.name', 'Laravel') }}
-                </a>
+        <div id="app-topbar-nav" class="container navbar-expand-md d-flex align-items-center flex-wrap py-2">
+            <a class="navbar-brand">
+                {{ config('app.name', 'Laravel') }}
+            </a>
 
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
+                <span class="navbar-toggler-icon"></span>
+            </button>
 
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                    <!-- Left Side Of Navbar -->
-                    <ul class="navbar-nav me-auto">
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <?php
+                $navLinks = [
+                    ['name' => 'Dashboard', 'route' => 'dashboard.index'],
+                    ['name' => 'Visitor', 'route' => 'visitor.index'],
+                    ['name' => 'Attendance', 'route' => 'attendance.index'],
+                    ['name' => 'Reports', 'route' => 'report.index'],
+                ];
+                ?>
+                <div class="topbar-nav-wrap">
+                    <div class="nav-pills-row">
+                        @auth
+                            @foreach($navLinks as $link)
+                                <a class="nav-pill {{ request()->routeIs($link['route']) ? 'nav-active' : '' }}" href="{{ route($link['route']) }}">{{$link['name']}}</a>
+                            @endforeach
+                        @endauth
+                    </div>
 
-                    </ul>
-
-                    <!-- CENTER LINKS -->
-                    <?php
-                    $navLinks = [
-                        ['name' => 'Dashboard', 'route' => 'dashboard.index'],
-                        ['name' => 'Visitor', 'route' => 'visitor.index'],
-                        ['name' => 'Attendance', 'route' => 'attendance.index'],
-                        ['name' => 'Reports', 'route' => 'report.index'],
-                    ];
-                    ?>
-                    <!-- *** START OF CENTER LINKS *** -->
-                    @auth
-                    <ul class="navbar-nav mx-auto">  {{-- Use mx-auto to center it --}}
-                        @foreach($navLinks as $link)
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs($link['route']) ? 'nav-active' : '' }}" href="{{ route($link['route']) }}">{{$link['name']}}</a>
-                        </li>
-                        @endforeach
-
-                    </ul>
-                    @endauth
-                    <!-- *** END OF CENTER LINKS *** -->
-
-                    <!-- Right Side Of Navbar -->
-                    <ul class="navbar-nav ms-auto">
-                        <!-- Authentication Links -->
+                    <div class="nav-auth">
                         @guest
                             @if (Route::has('login'))
-                                <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a>
-                                </li>
+                                <a class="nav-pill" href="{{ route('login') }}">{{ __('Login') }}</a>
                             @endif
-
-
-
                         @else
-                            <li class="nav-item dropdown">
-                                <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                            <div class="dropdown">
+                                <a id="navbarDropdown" class="nav-pill dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
                                     {{ Auth::user()->name }}
                                 </a>
 
@@ -233,38 +265,36 @@
                                         @csrf
                                     </form>
                                 </div>
-                            </li>
+                            </div>
                         @endguest
-                    </ul>
+                    </div>
                 </div>
             </div>
-        </nav>
+        </div>
 
-        {{-- Stats Sub-bar under navbar --}}
+        {{-- Stats badges --}}
         @auth
-        <div class="navbar-stats-bar">
-            <div class="container">
-                <div class="navbar-stats-capsule">
-                    <span class="nav-stat-badge badge-datetime">
-                        <i class="bi bi-calendar3"></i>
-                        <span id="nav-date"></span>
-                    </span>
-                    <div class="nav-stat-divider"></div>
-                    <span class="nav-stat-badge badge-datetime">
-                        <i class="bi bi-clock"></i>
-                        <span id="nav-time"></span>
-                    </span>
-                    <div class="nav-stat-divider"></div>
-                    <span class="nav-stat-badge badge-attendance">
-                        <i class="bi bi-person-check-fill"></i>
-                        Attendance: {{ $navTodayAttendance ?? 0 }}
-                    </span>
-                    <div class="nav-stat-divider"></div>
-                    <span class="nav-stat-badge badge-visitor">
-                        <i class="bi bi-people-fill"></i>
-                        Visitors: {{ $navTodayVisitors ?? 0 }}
-                    </span>
-                </div>
+        <div id="app-topbar-stats" class="container">
+            <div class="navbar-stats-capsule">
+                <span class="nav-stat-badge badge-datetime">
+                    <i class="bi bi-calendar3"></i>
+                    <span id="nav-date"></span>
+                </span>
+                <div class="nav-stat-divider"></div>
+                <span class="nav-stat-badge badge-datetime">
+                    <i class="bi bi-clock"></i>
+                    <span id="nav-time"></span>
+                </span>
+                <div class="nav-stat-divider"></div>
+                <span class="nav-stat-badge badge-attendance">
+                    <i class="bi bi-person-check-fill"></i>
+                    Attendance: {{ $navTodayAttendance ?? 0 }}
+                </span>
+                <div class="nav-stat-divider"></div>
+                <span class="nav-stat-badge badge-visitor">
+                    <i class="bi bi-people-fill"></i>
+                    Visitors: {{ $navTodayVisitors ?? 0 }}
+                </span>
             </div>
         </div>
         @endauth
@@ -272,7 +302,22 @@
         <main class="py-4">
             @yield('content')
         </main>
+
+        <footer class="text-center py-3 text-muted" style="font-size: 0.85rem;">
+            &copy; {{ date('Y') }} Lembah Sari Sdn Bhd. All rights reserved.
+        </footer>
     </div>
+
+    {{-- Keep toast notifications clear of the navbar so they never block its links --}}
+    <script>
+        function vmsSetToastTop() {
+            const header = document.getElementById('app-topbar-stats') || document.getElementById('app-topbar-nav');
+            const top = header ? header.getBoundingClientRect().bottom + 12 : 16;
+            document.documentElement.style.setProperty('--toast-top', top + 'px');
+        }
+        vmsSetToastTop();
+        window.addEventListener('resize', vmsSetToastTop);
+    </script>
 
     {{-- Global Toast Notifications --}}
     @if(session('success') || session('error'))
