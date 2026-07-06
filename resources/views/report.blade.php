@@ -9,44 +9,51 @@
         background-repeat: no-repeat;
         background-attachment: fixed;
     }
-    /* ===== REPORT NAV TABS ===== */
-    .report-nav { border-bottom: 3px solid #dee2e6; gap: 6px; }
-    .report-nav .nav-item { margin-bottom: -3px; }
+    /* ===== REPORT NAV TABS — pill segments ===== */
+    .report-nav { border-bottom: none; gap: 8px; margin-bottom: 16px; }
+    .report-nav .nav-item { margin-bottom: 0; }
     .report-nav .nav-link {
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        padding: 12px 28px;
+        padding: 10px 26px;
         font-weight: 700;
-        font-size: 0.95rem;
-        color: #6c757d;
-        border: 2px solid transparent;
-        border-bottom: 3px solid transparent;
-        border-radius: 8px 8px 0 0;
-        background: #f8f9fa;
+        font-size: 0.92rem;
+        color: #6b6f78;
+        border: 1px solid rgba(255,255,255,0.65);
+        border-radius: 999px;
+        background: rgba(255,255,255,0.78);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: 0 4px 14px rgba(16,24,40,0.08);
         transition: all 0.18s;
         cursor: pointer;
     }
-    .report-nav .nav-link i { font-size: 1.1rem; }
+    .report-nav .nav-link i { font-size: 1.05rem; }
     .report-nav .nav-link:hover {
-        color: #0d6efd;
-        background: #e8f0fe;
-        border-color: #c4d4f8 #c4d4f8 transparent;
+        color: #16181d;
+        background: #fff;
     }
-    .report-nav .nav-link.active-visitor {
-        color: #fff;
-        background: #0d6efd;
-        border-color: #0d6efd #0d6efd #0d6efd;
-        border-bottom-color: #0d6efd;
-        box-shadow: 0 -2px 10px rgba(13,110,253,0.2);
-    }
+    .report-nav .nav-link.active-visitor,
     .report-nav .nav-link.active-attendance {
         color: #fff;
-        background: #28a745;
-        border-color: #28a745 #28a745 #28a745;
-        border-bottom-color: #28a745;
-        box-shadow: 0 -2px 10px rgba(40,167,69,0.2);
+        background: #16181d;
+        border-color: #16181d;
+        box-shadow: 0 6px 18px rgba(22,24,29,0.28);
     }
+    /* ===== GLASS TABLE CONTAINER ===== */
+    .tab-content {
+        background: rgba(255,255,255,0.90);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255,255,255,0.65);
+        border-radius: 18px;
+        box-shadow: 0 8px 32px rgba(16,24,40,0.12);
+        padding: 16px;
+        margin-bottom: 24px;
+        overflow: hidden;
+    }
+    .tab-content .table { margin-bottom: 0; }
     /* ===== PRINT BUTTONS ===== */
     .print-btn {
         display: inline-flex;
@@ -64,9 +71,42 @@
         white-space: nowrap;
     }
     .print-btn:hover { transform: translateY(-1px); filter: brightness(0.92); box-shadow: 0 4px 14px rgba(0,0,0,0.18); }
-    .print-btn-visitor    { background: #0d6efd; color: #fff; }
-    .print-btn-attendance { background: #28a745; color: #fff; }
+    .print-btn { border-radius: 999px; }
+    .print-btn-visitor    { background: #16181d; color: #fff; }
+    .print-btn-attendance { background: #16a34a; color: #fff; }
     .print-btn i { font-size: 1rem; }
+    /* Tables scroll sideways inside the glass card instead of breaking the page */
+    .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+    /* ===== PHONE LAYOUT ===== */
+    @media (max-width: 767.98px) {
+        /* Tabs: split 50/50 across the screen */
+        .report-nav { display: flex; gap: 8px; }
+        .report-nav .nav-item { flex: 1; }
+        .report-nav .nav-link {
+            width: 100%;
+            justify-content: center;
+            padding: 10px 6px;
+            font-size: 0.82rem;
+            gap: 6px;
+        }
+        /* Filter form: stack everything full width */
+        #filter-form { flex-direction: column; align-items: stretch; gap: 12px !important; }
+        #filter-form > div { width: 100%; }
+        #filter-form .form-control { width: 100%; }
+        #filter-form button[type="submit"] { width: 100%; }
+        /* Print buttons: full width, stacked */
+        #filter-form .ms-auto {
+            margin-left: 0 !important;
+            width: 100%;
+            flex-direction: column;
+        }
+        .print-btn { width: 100%; justify-content: center; padding: 12px 20px; }
+        /* Table card: tighter padding, compact rows */
+        .tab-content { padding: 10px; }
+        .tab-content .table { font-size: 0.8rem; white-space: nowrap; }
+        .tab-content .table th, .tab-content .table td { padding: 8px 10px; }
+    }
 </style>
 
 <div class="container">
@@ -136,6 +176,7 @@
 
         {{-- ===== Table 1: Visitor Report ===== --}}
         <div class="tab-pane fade {{ request('tab', 'visitor') === 'visitor' ? 'show active' : '' }}" id="visitor-tab">
+            <div class="table-scroll">
             <table class="table table-striped table-bordered">
                 <thead class="table-dark">
                     <tr>
@@ -183,10 +224,12 @@
                     @endif
                 </tbody>
             </table>
+            </div>
         </div>
 
         {{-- ===== Table 2: Attendance Report ===== --}}
         <div class="tab-pane fade {{ request('tab', 'visitor') === 'attendance' ? 'show active' : '' }}" id="attendance-tab">
+            <div class="table-scroll">
             <table class="table table-striped table-bordered">
                 <thead class="table-dark">
                     <tr>
@@ -230,6 +273,7 @@
                     @endif
                 </tbody>
             </table>
+            </div>
         </div>
 
     </div>{{-- end tab-content --}}

@@ -18,6 +18,9 @@ Route::post('/attendance/{id}/clock-out', [App\Http\Controllers\AttendanceContro
 Route::post('/attendance/{id}/update-checkin', [App\Http\Controllers\AttendanceController::class, 'updateCheckIn'])->name('attendance.updateCheckIn')->middleware('auth');
 Route::delete('/attendance/{id}', [App\Http\Controllers\AttendanceController::class, 'destroy'])->name('attendance.destroy')->middleware('auth');
 
+// Analytics Route
+Route::get('/analytics', [App\Http\Controllers\AnalyticsController::class, 'index'])->name('analytics.index')->middleware('auth');
+
 // Report Routes
 Route::get('/report', [App\Http\Controllers\ReportController::class, 'index'])->name('report.index')->middleware('auth');
 
@@ -25,23 +28,7 @@ Route::get('/report/print/{filename}', [App\Http\Controllers\ReportController::c
 
 
 // Dashboard Route
-Route::get('/dashboard', function () {
-    // Show today's visits + any still-active visits from previous days
-    $today = now()->toDateString();
-    $liveVisits = App\Models\Visit::with(['employee', 'visitors', 'visitors.company'])
-        ->where(function ($query) use ($today) {
-            // Today's visits (both active and completed)
-            $query->whereDate('created_at', $today);
-        })
-        ->orWhere(function ($query) {
-            // Still active from previous days (not checked out yet)
-            $query->where('status', 'active');
-        })
-        ->orderBy('created_at', 'desc')
-        ->get();
-
-    return view('dashboard', compact('liveVisits'));
-})->name('dashboard.index')->middleware('auth');
+Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard.index')->middleware('auth');
 
 // Visitor Routes
 Route::post('/visitor', [App\Http\Controllers\VisitController::class, 'store'])->name('visit.store')->middleware('auth');

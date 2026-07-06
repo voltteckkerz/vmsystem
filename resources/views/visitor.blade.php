@@ -20,28 +20,84 @@
         margin-top: 4px;
         display: block;
     }
-    /* Registered visitor row highlight */
-    .rv-selected > td { background-color: #0d6efd !important; color: #fff !important; }
-    .table-hover tbody tr.rv-selected:hover > td { background-color: #0b5ed7 !important; }
-    /* Inline row action buttons — hidden until row is selected */
-    .rv-row-actions { display: none; gap: 4px; align-items: center; justify-content: flex-end; }
-    tr.rv-selected .rv-row-actions { display: flex; }
-    /* Add button lives inside the Name cell */
-    .rv-add-wrap { display: none; align-items: center; }
-    tr.rv-selected .rv-add-wrap { display: inline-flex; }
+    /* ===== ROW ACTIONS — slide in on hover ===== */
+    .rv-row-actions {
+        display: flex;
+        gap: 5px;
+        align-items: center;
+        justify-content: flex-end;
+        opacity: 0;
+        transform: translateX(14px);
+        pointer-events: none;
+        transition: opacity 0.22s ease, transform 0.22s ease;
+    }
+    tr.registered-visitor-row:hover .rv-row-actions {
+        opacity: 1;
+        transform: translateX(0);
+        pointer-events: auto;
+    }
+    /* Add button slides open inside the Name cell */
+    .rv-add-wrap {
+        display: inline-flex;
+        align-items: center;
+        max-width: 0;
+        opacity: 0;
+        overflow: hidden;
+        transform: translateX(-10px);
+        transition: max-width 0.22s ease, opacity 0.22s ease, transform 0.22s ease;
+    }
+    tr.registered-visitor-row:hover .rv-add-wrap {
+        max-width: 40px;
+        opacity: 1;
+        transform: translateX(0);
+    }
     .rv-name-cell { display: flex; align-items: center; gap: 6px; }
     .rv-action-btn {
-        width: 26px; height: 26px; border-radius: 50%;
+        width: 30px; height: 30px; border-radius: 9px;
         border: none; color: #fff;
-        font-size: 0.72rem; display: inline-flex; align-items: center;
-        justify-content: center; cursor: pointer; transition: all 0.18s;
-        flex-shrink: 0; line-height: 1; box-shadow: 0 1px 4px rgba(0,0,0,0.18);
+        font-size: 0.75rem; display: inline-flex; align-items: center;
+        justify-content: center; cursor: pointer;
+        transition: transform 0.15s, filter 0.15s;
+        flex-shrink: 0; line-height: 1; box-shadow: 0 2px 6px rgba(0,0,0,0.15);
     }
-    .rv-action-btn:hover { transform: scale(1.18); filter: brightness(1.12); }
-    .rv-action-btn.btn-add  { background: #3ecf7a; }
+    .rv-action-btn:hover { transform: translateY(-1px) scale(1.08); filter: brightness(1.1); }
+    .rv-action-btn.btn-add  { background: #16a34a; }
     .rv-action-btn.btn-edit { background: #3b82f6; }
-    .rv-action-btn.btn-del  { background: #ef4444; }
+    .rv-action-btn.btn-del  { background: #dc2626; }
     .rv-action-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; filter: none; }
+
+    /* ===== VISITOR DETAIL BLOCKS — refreshed, fields stay on one straight row ===== */
+    .visitor-block {
+        border: 1px solid #ececea !important;
+        border-radius: 14px !important;
+        transition: box-shadow 0.18s, border-color 0.18s;
+    }
+    .visitor-block:hover { box-shadow: 0 4px 16px rgba(16,24,40,0.07); border-color: #dcdcd8 !important; }
+    .visitor-block.bg-light { background: #fbfbfa !important; }
+    .visitor-block .visitor-number {
+        display: inline-flex;
+        align-items: center;
+        background: #16181d;
+        color: #fff;
+        border-radius: 999px;
+        padding: 4px 14px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    .visitor-block .remove-visitor-btn {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background-color: #f1f1ef;
+        opacity: 1;
+        padding: 0;
+        transition: background-color 0.15s;
+    }
+    .visitor-block .remove-visitor-btn:hover { background-color: #fecaca; }
+    .visitor-block .form-control,
+    .visitor-block .form-select { background-color: #fff; }
 </style>
 <div class="container">
 
@@ -107,8 +163,8 @@
                         <div id="visitors-container">
                             {{-- First Visitor Block --}}
                             <div class="visitor-block border rounded p-3 mb-3 bg-light">
-                                <div class="d-flex justify-content-between">
-                                    <h6 class="text-muted mb-3 visitor-number">Visitor 1</h6>
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <h6 class="mb-0 visitor-number">Visitor 1</h6>
                                     <button type="button" class="btn-close remove-visitor-btn" aria-label="Close"></button>
                                 </div>
                                 <div class="row mb-3">
@@ -177,7 +233,7 @@
                                 data-name="{{ $rv->name }}"
                                 data-company="{{ $rv->company->name ?? '' }}"
                                 data-active="{{ $isActive ? '1' : '0' }}"
-                                style="cursor: pointer; position: relative; {{ $isActive ? 'opacity: 0.5;' : '' }}">
+                                style="position: relative; {{ $isActive ? 'opacity: 0.5;' : '' }}">
                                 {{-- Name cell: arrow add button appears to the LEFT of the name --}}
                                 <td class="align-middle" style="white-space:nowrap;">
                                     <div class="rv-name-cell">
@@ -223,14 +279,13 @@
 </div>
 
 {{-- Check-In Confirmation Modal --}}
-<div class="modal fade" id="checkinModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade vms-modal" id="checkinModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
-            <div class="modal-header">
-                <h5 class="modal-title">Confirm Check-In</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body text-center py-4">
+            <button type="button" class="vms-modal-close" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i></button>
+            <div class="modal-body text-center pt-4 pb-2">
+                <div class="vms-modal-icon icon-success"><i class="bi bi-person-check-fill"></i></div>
+                <h5 class="vms-modal-title mb-3">Confirm Check-In</h5>
                 @if($canOverrideDate)
                 <div class="mb-3">
                     <label class="form-label text-muted small mb-1"><i class="bi bi-calendar-event me-1"></i>Date</label>
@@ -243,8 +298,8 @@
                 <small class="text-muted mt-2 d-block">24-hour format (e.g. 08:30, 14:00). Defaults to current time.</small>
             </div>
             <div class="modal-footer justify-content-center">
-                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal"><i class="bi bi-x-lg me-1"></i>Cancel</button>
-                <button type="button" class="btn btn-primary px-4" id="confirm-checkin-btn"><i class="bi bi-check-lg me-1"></i>Confirm Check-In</button>
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success px-4" id="confirm-checkin-btn"><i class="bi bi-check-lg me-1"></i>Confirm Check-In</button>
             </div>
         </div>
     </div>
@@ -608,18 +663,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // ===== REGISTERED VISITOR ROW SELECTION =====
-    let selectedRV = null;
-
-    document.querySelectorAll('.registered-visitor-row').forEach(function(row) {
-        row.addEventListener('click', function() {
-            document.querySelectorAll('.registered-visitor-row').forEach(r => r.classList.remove('rv-selected'));
-            this.classList.add('rv-selected');
-            selectedRV = { id: this.dataset.id, name: this.dataset.name, nric: this.dataset.nric, company: this.dataset.company, row: this };
-        });
-    });
-
-    // Inline row button handlers
+    // Inline row button handlers (revealed on row hover)
     window.rvRowAdd = function(btn) {
         const row = btn.closest('tr');
         if (!row || btn.disabled || row.classList.contains('already-added') || row.classList.contains('company-locked')) return;
@@ -683,11 +727,9 @@ document.addEventListener('DOMContentLoaded', function() {
         targetBlock.querySelectorAll('.form-label, .visitor-number').forEach(el => { el.classList.remove('text-muted'); el.style.color = '#ffffff'; });
         clickedRow.classList.add('already-added');
         clickedRow.style.opacity = '0.5';
-        clickedRow.classList.remove('rv-selected');
         // Disable the add button on the row actions
         const addRowBtn = clickedRow.querySelector('.rv-action-btn.btn-add');
         if (addRowBtn) addRowBtn.disabled = true;
-        selectedRV = null;
         updateCompanyFilter();
         const removeBtn = targetBlock.querySelector('.remove-visitor-btn');
         if (removeBtn) {
@@ -720,14 +762,13 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 {{-- Edit Visitor Modal --}}
-<div class="modal fade" id="editVisitorModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade vms-modal" id="editVisitorModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title"><i class="bi bi-pencil-fill me-2"></i>Edit Visitor</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body py-4">
+            <button type="button" class="vms-modal-close" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i></button>
+            <div class="modal-body pt-4 pb-2">
+                <div class="vms-modal-icon icon-dark"><i class="bi bi-pencil-fill"></i></div>
+                <h5 class="vms-modal-title mb-3">Edit Visitor</h5>
                 <div class="mb-3">
                     <label class="form-label fw-semibold">Full Name</label>
                     <input type="text" class="form-control" id="edit-visitor-name-input" placeholder="Full name" required>
@@ -736,12 +777,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     <label class="form-label fw-semibold">Company</label>
                     <input type="text" class="form-control" id="edit-visitor-company-input" placeholder="Company name" required>
                 </div>
-                <div class="alert alert-info py-2 small mb-0">
+                <div class="alert alert-info py-2 small mb-0" style="border-radius:12px;">
                     <i class="bi bi-info-circle me-1"></i>NRIC cannot be changed. Past visit records will keep the original name &amp; company.
                 </div>
             </div>
             <div class="modal-footer justify-content-center">
-                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal"><i class="bi bi-x-lg me-1"></i>Cancel</button>
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary px-4" onclick="submitEditForm()">
                     <i class="bi bi-check-lg me-1"></i>Save Changes
                 </button>
@@ -751,21 +792,19 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 
 {{-- Delete Visitor Modal --}}
-<div class="modal fade" id="deleteVisitorModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade vms-modal" id="deleteVisitorModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title"><i class="bi bi-trash-fill me-2"></i>Delete Visitor</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body text-center py-4">
-                <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size:2.5rem;"></i>
-                <p class="mt-3 mb-1">Permanently delete visitor:</p>
+            <button type="button" class="vms-modal-close" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i></button>
+            <div class="modal-body text-center pt-4 pb-2">
+                <div class="vms-modal-icon icon-danger"><i class="bi bi-trash-fill"></i></div>
+                <h5 class="vms-modal-title">Delete Visitor</h5>
+                <p class="vms-modal-sub mb-1">Permanently delete visitor:</p>
                 <h5 class="mb-2" id="delete-visitor-name-display"></h5>
                 <p class="text-muted small mb-0">If this visitor has past visit records, deletion will be blocked.</p>
             </div>
             <div class="modal-footer justify-content-center">
-                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal"><i class="bi bi-x-lg me-1"></i>Cancel</button>
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-danger px-4" onclick="document.getElementById('delete-visitor-form').submit()">
                     <i class="bi bi-trash-fill me-1"></i>Yes, Delete
                 </button>

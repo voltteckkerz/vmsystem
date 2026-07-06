@@ -10,7 +10,7 @@
         background-attachment: fixed;
     }
     tr.selected-employee > td {
-        background-color: #0d6efd !important;
+        background-color: #16181d !important;
         color: white !important;
         font-weight: 600;
     }
@@ -19,7 +19,7 @@
         color: white !important;
         font-weight: 600;
     }
-    .table-hover tbody tr.selected-employee:hover > td { background-color: #0b5ed7 !important; }
+    .table-hover tbody tr.selected-employee:hover > td { background-color: #2a2d36 !important; }
     .table-hover tbody tr.selected-attendance:hover > td { background-color: #c82333 !important; }
     #clockin-deviation-warning { display: none; margin-top: 8px; }
 
@@ -81,6 +81,182 @@
     .icon-btn.active-btn.btn-add-emp    + .icon-btn-label { color: #28a745; }
     /* Divider */
     .center-divider { border-top: 1px dashed #dee2e6; margin: 12px 0; }
+    /* Glass panel behind the center action buttons */
+    .att-center-card {
+        background: rgba(255,255,255,0.88);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255,255,255,0.65);
+        border-radius: 18px;
+        box-shadow: 0 8px 32px rgba(16,24,40,0.12);
+        padding: 18px 10px;
+    }
+    /* Vehicle plate card — yellow plate, black lettering */
+    .att-vehicle-card {
+        background: #ffd500;
+        border-radius: 12px;
+        padding: 5px;
+        margin-bottom: 10px;
+        text-align: center;
+        transition: opacity 0.2s ease;
+        /* pressed metal rim */
+        box-shadow: inset 0 0 0 2px rgba(0,0,0,0.30),
+                    inset 0 0 0 4px rgba(255,255,255,0.25),
+                    0 8px 24px rgba(0,0,0,0.30);
+    }
+    /* Fade the whole plate when it's display-only */
+    .att-vehicle-card:has(select:disabled) { opacity: 0.5; }
+    .att-vehicle-label { display: none; }
+    #vehicle-dropdown.form-select {
+        appearance: none;
+        -webkit-appearance: none;
+        background-color: transparent;
+        border: none;
+        border-radius: 8px;
+        color: #0d0e10;
+        font-weight: 400;
+        font-size: 1.02rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        text-align: center;
+        text-align-last: center;
+        padding: 8px 26px 8px 10px;
+        cursor: pointer;
+        /* black chevron on the yellow plate */
+        background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='none' stroke='%230d0e10' stroke-width='2' stroke-linecap='round' d='M1 1.5 6 6.5 11 1.5'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 10px center;
+        box-shadow: none;
+        text-shadow: 0 1px 0 rgba(255,255,255,0.35);
+    }
+    #vehicle-dropdown.form-select:focus {
+        border: none;
+        box-shadow: 0 0 0 3px rgba(13,14,16,0.25);
+        background-color: transparent;
+        color: #0d0e10;
+    }
+    #vehicle-dropdown option {
+        background: #ffd500;
+        color: #0d0e10;
+        font-weight: 400;
+        letter-spacing: normal;
+    }
+    /* Display-only state: faded plate, no chevron, no pointer */
+    #vehicle-dropdown.form-select:disabled {
+        background-color: transparent;
+        background-image: none;
+        color: #0d0e10;
+        opacity: 1;
+        cursor: default;
+        padding-right: 10px;
+    }
+
+    /* Online status light (phone) */
+    .att-dot {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        vertical-align: middle;
+    }
+    .att-dot.online {
+        background: #22c55e;
+        box-shadow: 0 0 0 3px rgba(34,197,94,0.25);
+        animation: attPulse 1.8s ease-in-out infinite;
+    }
+    .att-dot.off { background: #c4c8cf; }
+    @keyframes attPulse {
+        0%, 100% { box-shadow: 0 0 0 3px rgba(34,197,94,0.25); }
+        50%      { box-shadow: 0 0 0 6px rgba(34,197,94,0.10); }
+    }
+
+    /* ===== PHONE LAYOUT — 2 columns side by side, controls become a floating bottom dock ===== */
+    @media (max-width: 767.98px) {
+        /* Employee list and Live Attendance sit side by side */
+        .container-fluid > .row > .col {
+            flex: 0 0 50%;
+            max-width: 50%;
+            width: 50%;
+        }
+        .container-fluid > .row > .col-auto {
+            flex: 0 0 100%;
+            max-width: 100%;
+            width: 100%;
+            /* The dock is position:fixed — send its wrapper to the end so it
+               doesn't split the two lists onto separate lines */
+            order: 3;
+        }
+        /* Tighter spacing for the split view */
+        .container-fluid { padding-left: 8px !important; padding-right: 8px !important; }
+        .container-fluid > .row { --bs-gutter-x: 8px; }
+        .container-fluid .card-body { padding: 10px; }
+        .container-fluid .card-header { padding-left: 12px; padding-right: 12px; }
+        .container-fluid .card-header h5 { font-size: 0.9rem; }
+        /* Simplified tables: smaller text, compact cells */
+        .att-emp-table, .att-live-table { font-size: 0.8rem; }
+        .att-emp-table th, .att-emp-table td,
+        .att-live-table th, .att-live-table td { padding: 8px 8px; }
+        /* Employee list: name only */
+        .att-emp-table th:nth-child(n+2),
+        .att-emp-table td:nth-child(n+2) { display: none; }
+        /* Live attendance: name + time + status light only */
+        .att-live-table th:nth-child(2), .att-live-table td:nth-child(2),
+        .att-live-table th:nth-child(4), .att-live-table td:nth-child(4) { display: none; }
+        /* Room at the bottom so the dock never covers the last rows */
+        .container-fluid { padding-bottom: 150px; }
+
+        /* Floating stack (vehicle card + dock), centered at the bottom of the screen */
+        .att-center-stack {
+            position: fixed !important;
+            top: auto !important;
+            bottom: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100vw - 24px) !important;
+            max-width: 480px;
+            z-index: 1050;
+        }
+        .att-center-card {
+            padding: 10px 12px 12px;
+            border-radius: 22px;
+            box-shadow: 0 14px 44px rgba(16,24,40,0.32);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 4px 12px;
+        }
+        .att-vehicle-card {
+            margin-bottom: 8px;
+            max-width: 260px;
+            margin-left: auto;
+            margin-right: auto;
+            box-shadow: inset 0 0 0 2px rgba(0,0,0,0.30),
+                        inset 0 0 0 4px rgba(255,255,255,0.25),
+                        0 14px 40px rgba(0,0,0,0.35);
+        }
+        /* "Selected: name" as one inline line across the top of the dock */
+        .att-center-card > .mb-3 {
+            width: 100%;
+            margin-bottom: 6px !important;
+            display: flex;
+            justify-content: center;
+            align-items: baseline;
+            gap: 6px;
+        }
+        .att-center-card > .mb-3 span  { display: inline !important; }
+        .att-center-card > .mb-3 strong {
+            display: inline-block !important;
+            max-width: 65%;
+            vertical-align: bottom;
+        }
+        /* Flatten the button rows into one horizontal strip */
+        .att-center-card > .d-flex { display: contents !important; }
+        .att-center-card .center-divider { display: none; }
+        .icon-btn { width: 44px; height: 44px; font-size: 1rem; }
+        .icon-btn-label { font-size: 0.56rem; }
+    }
+    .icon-btn:not(.active-btn):not(:disabled),
+    .icon-btn.inactive { background: rgba(255,255,255,0.6); }
     /* Add Employee modal input uppercase */
     #modal-emp-name, #modal-emp-plate1, #modal-emp-plate2 { text-transform: uppercase; }
 </style>
@@ -131,7 +307,7 @@
                 <div class="card-body pt-0">
                     <input type="text" class="form-control form-control-sm mb-3" id="employee-search" placeholder="Search employee...">
                     <div class="table-responsive" style="height: 450px; overflow-y: auto;">
-                        <table class="table table-hover mb-0">
+                        <table class="table table-hover mb-0 att-emp-table">
                             <thead class="table-dark" style="position: sticky; top: 0; z-index: 1;">
                                 <tr>
                                     <th>Name</th>
@@ -174,10 +350,19 @@
 
         {{-- CENTER: Icon Buttons --}}
         <div class="col-auto d-flex align-items-center justify-content-center">
-            <div class="text-center px-2" style="position: sticky; top: 80px; width: 140px;">
+            <div class="att-center-stack" style="position: sticky; top: 80px; width: 150px;">
+
+            {{-- Vehicle plate — styled like a car number plate, always visible --}}
+            <div id="vehicle-selection" class="att-vehicle-card">
+                <select class="form-select form-select-sm" id="vehicle-dropdown" disabled>
+                    <option value="">NO VEHICLE</option>
+                </select>
+            </div>
+
+            <div class="text-center px-2 att-center-card">
 
                 {{-- Selected Name --}}
-                <div class="mb-3">
+                <div class="mb-3" id="selected-name-wrap">
                     <span class="text-muted small d-block">Selected</span>
                     <strong id="selected-display" class="d-block text-truncate" style="font-size: 0.85rem;" title="None">None</strong>
                 </div>
@@ -196,11 +381,6 @@
                         </button>
                         <span class="icon-btn-label">Clock Out</span>
                     </div>
-                </div>
-
-                {{-- Vehicle dropdown (normal flow, no overlap) --}}
-                <div id="vehicle-selection" class="mb-2" style="visibility:hidden;">
-                    <select class="form-select form-select-sm" id="vehicle-dropdown"></select>
                 </div>
 
                 <div class="center-divider"></div>
@@ -236,6 +416,7 @@
                 </div>
 
             </div>
+            </div>
         </div>
 
         {{-- RIGHT: Live Attendance Status --}}
@@ -247,12 +428,12 @@
                 <div class="card-body pt-0">
                     <input type="text" class="form-control form-control-sm mb-3" id="attendance-search" placeholder="Search employee...">
                     <div class="table-responsive" style="height: 450px; overflow-y: auto;">
-                        <table class="table table-hover mb-0">
+                        <table class="table table-hover mb-0 att-live-table">
                             <thead class="table-dark" style="position: sticky; top: 0; z-index: 1;">
                                 <tr>
                                     <th>Employee</th>
                                     <th>Vehicle</th>
-                                    <th>Time In</th>
+                                    <th><span class="d-none d-md-inline">Time In</span><span class="d-md-none">Time</span></th>
                                     <th>Time Out</th>
                                     <th>Status</th>
                                 </tr>
@@ -264,6 +445,7 @@
                                         data-id="{{ $attendance->id }}"
                                         data-name="{{ $attendance->employee->name }}"
                                         data-status="{{ $attendance->status }}"
+                                        data-plate="{{ $attendance->vehicle_plate }}"
                                         data-checkin="{{ \Carbon\Carbon::parse($attendance->check_in_time)->format('H:i') }}"
                                         data-checkin-date="{{ \Carbon\Carbon::parse($attendance->check_in_time)->format('Y-m-d') }}"
                                         style="cursor: pointer;"
@@ -277,7 +459,10 @@
                                         @else -
                                         @endif
                                     </td>
-                                    <td>{{ \Carbon\Carbon::parse($attendance->check_in_time)->format('d M Y, h:i A') }}</td>
+                                    <td>
+                                        <span class="d-none d-md-inline">{{ \Carbon\Carbon::parse($attendance->check_in_time)->format('d M Y, h:i A') }}</span>
+                                        <span class="d-md-none">{{ \Carbon\Carbon::parse($attendance->check_in_time)->format('h:i A') }}</span>
+                                    </td>
                                     <td>
                                         @if($attendance->check_out_time)
                                             @php
@@ -293,9 +478,11 @@
                                     </td>
                                     <td>
                                         @if($attendance->status == 'clocked_in')
-                                            <span class="badge bg-success">Clocked In</span>
+                                            <span class="badge bg-success d-none d-md-inline-block">Clocked In</span>
+                                            <span class="att-dot online d-md-none" title="Clocked In"></span>
                                         @else
-                                            <span class="badge bg-secondary">Clocked Out</span>
+                                            <span class="badge bg-secondary d-none d-md-inline-block">Clocked Out</span>
+                                            <span class="att-dot off d-md-none" title="Clocked Out"></span>
                                         @endif
                                     </td>
                                 </tr>
@@ -314,15 +501,14 @@
 </div>
 
 {{-- Clock In Modal --}}
-<div class="modal fade" id="clockInModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade vms-modal" id="clockInModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-success text-white">
-                <h5 class="modal-title"><i class="bi bi-box-arrow-in-right me-2"></i>Confirm Clock In</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body text-center py-4">
-                <p class="mb-1">Clocking in:</p>
+            <button type="button" class="vms-modal-close" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i></button>
+            <div class="modal-body text-center pt-4 pb-2">
+                <div class="vms-modal-icon icon-success"><i class="bi bi-box-arrow-in-right"></i></div>
+                <h5 class="vms-modal-title">Confirm Clock In</h5>
+                <p class="vms-modal-sub mb-1">Clocking in:</p>
                 <h5 class="mb-3" id="modal-clockin-name"></h5>
                 @if($canOverrideDate)
                 <div class="mb-3">
@@ -339,7 +525,7 @@
                 </div>
             </div>
             <div class="modal-footer justify-content-center">
-                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal"><i class="bi bi-x-lg me-1"></i>Cancel</button>
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-success px-4" id="confirm-clockin-btn"><i class="bi bi-check-lg me-1"></i>Confirm Clock In</button>
             </div>
         </div>
@@ -347,15 +533,14 @@
 </div>
 
 {{-- Clock Out Modal --}}
-<div class="modal fade" id="clockOutModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade vms-modal" id="clockOutModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title"><i class="bi bi-box-arrow-left me-2"></i>Confirm Clock Out</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body text-center py-4">
-                <p class="mb-1">Clocking out:</p>
+            <button type="button" class="vms-modal-close" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i></button>
+            <div class="modal-body text-center pt-4 pb-2">
+                <div class="vms-modal-icon icon-danger"><i class="bi bi-box-arrow-left"></i></div>
+                <h5 class="vms-modal-title">Confirm Clock Out</h5>
+                <p class="vms-modal-sub mb-1">Clocking out:</p>
                 <h5 class="mb-3" id="modal-clockout-name"></h5>
                 @if($canOverrideDate)
                 <div class="mb-3">
@@ -369,7 +554,7 @@
                 <small class="text-muted mt-2 d-block">24-hour format (e.g. 08:30, 14:00). Defaults to current time.</small>
             </div>
             <div class="modal-footer justify-content-center">
-                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal"><i class="bi bi-x-lg me-1"></i>Cancel</button>
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-danger px-4" id="confirm-clockout-btn"><i class="bi bi-check-lg me-1"></i>Confirm Clock Out</button>
             </div>
         </div>
@@ -377,15 +562,14 @@
 </div>
 
 {{-- Correct Clock-In Modal --}}
-<div class="modal fade" id="editCheckinModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade vms-modal" id="editCheckinModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title"><i class="bi bi-pencil-fill me-2"></i>Correct Clock-In Time</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body text-center py-4">
-                <p class="mb-1">Correcting clock-in for:</p>
+            <button type="button" class="vms-modal-close" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i></button>
+            <div class="modal-body text-center pt-4 pb-2">
+                <div class="vms-modal-icon icon-dark"><i class="bi bi-pencil-fill"></i></div>
+                <h5 class="vms-modal-title">Correct Clock-In Time</h5>
+                <p class="vms-modal-sub mb-1">Correcting clock-in for:</p>
                 <h5 class="mb-3" id="modal-edit-name"></h5>
                 @if($canOverrideDate)
                 <div class="mb-3">
@@ -406,7 +590,7 @@
                 @endif
             </div>
             <div class="modal-footer justify-content-center">
-                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal"><i class="bi bi-x-lg me-1"></i>Cancel</button>
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary px-4" id="confirm-edit-checkin-btn"><i class="bi bi-check-lg me-1"></i>Save Correction</button>
             </div>
         </div>
@@ -414,43 +598,39 @@
 </div>
 
 {{-- Remove Attendance Modal --}}
-<div class="modal fade" id="deleteAttendanceModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade vms-modal" id="deleteAttendanceModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
-            <div class="modal-header" style="background:#fd7e14;" >
-                <h5 class="modal-title text-white"><i class="bi bi-trash-fill me-2"></i>Remove Clock-In Entry</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body text-center py-4">
-                <i class="bi bi-exclamation-triangle-fill" style="font-size:2.5rem; color:#fd7e14;"></i>
-                <p class="mt-3 mb-1">Remove the clock-in record for:</p>
+            <button type="button" class="vms-modal-close" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i></button>
+            <div class="modal-body text-center pt-4 pb-2">
+                <div class="vms-modal-icon icon-warning"><i class="bi bi-trash-fill"></i></div>
+                <h5 class="vms-modal-title">Remove Clock-In Entry</h5>
+                <p class="vms-modal-sub mb-1">Remove the clock-in record for:</p>
                 <h5 class="mb-2" id="modal-delete-att-name"></h5>
                 <p class="text-muted small mb-0">This cannot be undone. The employee can clock in again.</p>
             </div>
             <div class="modal-footer justify-content-center">
-                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal"><i class="bi bi-x-lg me-1"></i>Cancel</button>
-                <button type="button" class="btn px-4 text-white" style="background:#fd7e14;" id="confirm-delete-att-btn"><i class="bi bi-trash-fill me-1"></i>Yes, Remove</button>
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn px-4 text-white" style="background:#fd7e14;border-radius:999px;font-weight:700;" id="confirm-delete-att-btn"><i class="bi bi-trash-fill me-1"></i>Yes, Remove</button>
             </div>
         </div>
     </div>
 </div>
 
 {{-- Remove Employee Modal --}}
-<div class="modal fade" id="deleteEmployeeModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade vms-modal" id="deleteEmployeeModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title"><i class="bi bi-person-dash-fill me-2"></i>Remove Employee</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body text-center py-4">
-                <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size:2.5rem;"></i>
-                <p class="mt-3 mb-1">Permanently delete employee:</p>
+            <button type="button" class="vms-modal-close" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i></button>
+            <div class="modal-body text-center pt-4 pb-2">
+                <div class="vms-modal-icon icon-danger"><i class="bi bi-person-dash-fill"></i></div>
+                <h5 class="vms-modal-title">Remove Employee</h5>
+                <p class="vms-modal-sub mb-1">Permanently delete employee:</p>
                 <h5 class="mb-3" id="modal-delete-emp-name"></h5>
                 <p class="text-muted small mb-0">All their attendance records will also be deleted.<br>This <strong>cannot</strong> be undone.</p>
             </div>
             <div class="modal-footer justify-content-center">
-                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal"><i class="bi bi-x-lg me-1"></i>Cancel</button>
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-danger px-4" id="confirm-delete-emp-btn"><i class="bi bi-trash-fill me-1"></i>Yes, Delete</button>
             </div>
         </div>
@@ -458,14 +638,13 @@
 </div>
 
 {{-- Add Employee Modal --}}
-<div class="modal fade" id="addEmployeeModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade vms-modal" id="addEmployeeModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
-            <div class="modal-header text-white" style="background: #28a745;">
-                <h5 class="modal-title"><i class="bi bi-person-plus-fill me-2"></i>Add New Employee</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body py-4 px-4">
+            <button type="button" class="vms-modal-close" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i></button>
+            <div class="modal-body pt-4 pb-2 px-4">
+                <div class="vms-modal-icon icon-success"><i class="bi bi-person-plus-fill"></i></div>
+                <h5 class="vms-modal-title mb-3">Add New Employee</h5>
                 <div class="mb-3">
                     <label class="form-label fw-semibold">Full Name <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" id="modal-emp-name"
@@ -485,7 +664,7 @@
                 </div>
             </div>
             <div class="modal-footer justify-content-center">
-                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal"><i class="bi bi-x-lg me-1"></i>Cancel</button>
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-success px-4" id="save-emp-btn"><i class="bi bi-person-check-fill me-1"></i>Save Employee</button>
             </div>
         </div>
@@ -591,12 +770,16 @@
                     vehicleDropdown.appendChild(opt);
                 });
                 const nv = document.createElement('option');
-                nv.value = ''; nv.textContent = 'No Vehicle';
+                nv.value = ''; nv.textContent = 'NO VEHICLE';
                 vehicleDropdown.appendChild(nv);
-                vehicleSection.style.visibility = 'visible';
+                // Clickable only here — the guard picks which car for clock-in
+                vehicleDropdown.disabled = false;
                 document.getElementById('selected-vehicle-plate').value = vehicles[0];
             } else {
-                vehicleSection.style.visibility = 'hidden';
+                const nv = document.createElement('option');
+                nv.value = ''; nv.textContent = 'NO VEHICLE';
+                vehicleDropdown.appendChild(nv);
+                vehicleDropdown.disabled = true;
                 document.getElementById('selected-vehicle-plate').value = '';
             }
             setEmployeeMode(id, name);
@@ -620,7 +803,14 @@
             document.getElementById('selected-display').textContent = name;
             document.getElementById('selected-display').title = name;
             document.getElementById('selected-employee-id').value = '';
-            document.getElementById('vehicle-selection').style.visibility = 'hidden';
+            // Show the plate recorded on this attendance entry
+            const attDropdown = document.getElementById('vehicle-dropdown');
+            attDropdown.innerHTML = '';
+            const attOpt = document.createElement('option');
+            attOpt.value = this.dataset.plate || '';
+            attOpt.textContent = this.dataset.plate || 'NO VEHICLE';
+            attDropdown.appendChild(attOpt);
+            attDropdown.disabled = true; // display-only for attendance records
             setAttendanceMode(id, name, status, checkin, checkinDate);
         });
     });
