@@ -98,6 +98,66 @@
     .visitor-block .remove-visitor-btn:hover { background-color: #fecaca; }
     .visitor-block .form-control,
     .visitor-block .form-select { background-color: #fff; }
+
+    /* ===== PHONE LAYOUT ===== */
+    @media (max-width: 767.98px) {
+        .container { padding-left: 10px; padding-right: 10px; }
+        .card-header { padding-left: 14px !important; padding-right: 14px !important; }
+        .card-body { padding: 14px !important; }
+        .card-header h4 { font-size: 1.1rem; }
+        .card-header h5 { font-size: 1rem; }
+
+        /* Row hover-actions don't work on touch — always show them */
+        .rv-row-actions {
+            opacity: 1;
+            transform: none;
+            pointer-events: auto;
+        }
+        .rv-add-wrap {
+            max-width: 40px;
+            opacity: 1;
+            transform: none;
+        }
+
+        /* Compact the registered-visitors table */
+        #registered-visitors-list, .table-responsive .table { font-size: 0.82rem; }
+        .table-responsive td, .table-responsive th { padding: 6px 6px; }
+        .rv-action-btn { width: 26px; height: 26px; font-size: 0.68rem; }
+
+        /* Visitor detail fields: full-width, roomier tap targets */
+        .visitor-block .row.mb-3 > [class*="col-"] { margin-bottom: 12px; }
+        .visitor-block .row.mb-3 > [class*="col-"]:last-child { margin-bottom: 0; }
+        .form-control, .form-select { font-size: 1rem; }
+
+        /* Stack the top-level register/cancel and add-visitor rows */
+        .d-flex.justify-content-between.align-items-end.mt-5.mb-2 {
+            flex-direction: column;
+            align-items: stretch !important;
+            gap: 10px;
+        }
+        #add-visitor-btn { width: 100%; }
+        .d-flex.justify-content-end.mt-4 {
+            flex-direction: column-reverse;
+            gap: 8px;
+        }
+        .d-flex.justify-content-end.mt-4 > .btn {
+            width: 100%;
+            margin: 0 !important;
+        }
+
+        /* Modal footers: stack buttons full-width */
+        .vms-modal .modal-footer {
+            flex-direction: column-reverse;
+            gap: 8px;
+        }
+        .vms-modal .modal-footer > .btn {
+            width: 100%;
+            margin: 0 !important;
+        }
+
+        /* Space between the two stacked cards */
+        .col-md-7 { margin-bottom: 1.5rem; }
+    }
 </style>
 <div class="container">
 

@@ -91,18 +91,15 @@
         box-shadow: 0 8px 32px rgba(16,24,40,0.12);
         padding: 18px 10px;
     }
-    /* Vehicle plate card — yellow plate, black lettering */
+    /* Vehicle plate card — white plate, black lettering */
     .att-vehicle-card {
-        background: #ffd500;
+        background: #ffffff;
         border-radius: 12px;
         padding: 5px;
         margin-bottom: 10px;
         text-align: center;
         transition: opacity 0.2s ease;
-        /* pressed metal rim */
-        box-shadow: inset 0 0 0 2px rgba(0,0,0,0.30),
-                    inset 0 0 0 4px rgba(255,255,255,0.25),
-                    0 8px 24px rgba(0,0,0,0.30);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.30);
     }
     /* Fade the whole plate when it's display-only */
     .att-vehicle-card:has(select:disabled) { opacity: 0.5; }
@@ -230,9 +227,7 @@
             max-width: 260px;
             margin-left: auto;
             margin-right: auto;
-            box-shadow: inset 0 0 0 2px rgba(0,0,0,0.30),
-                        inset 0 0 0 4px rgba(255,255,255,0.25),
-                        0 14px 40px rgba(0,0,0,0.35);
+            box-shadow: 0 14px 40px rgba(0,0,0,0.35);
         }
         /* "Selected: name" as one inline line across the top of the dock */
         .att-center-card > .mb-3 {

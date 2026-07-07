@@ -329,11 +329,11 @@
         /* Toast notification styles — iPhone-style notification banner (always available for client-side use) */
         .vms-toast {
             position: fixed;
-            top: var(--toast-top, 16px);
+            top: 16px;
             left: 50%;
             right: auto;
             transform: translateX(-50%);
-            z-index: 99999;
+            z-index: 1000001;
             width: calc(100% - 32px);
             max-width: 400px;
             border-radius: 26px;
@@ -548,6 +548,16 @@
         .vms-modal .modal-content {
             border-radius: 24px !important;
             padding: 6px;
+        }
+        /* Smooth scale-up-from-center popup instead of Bootstrap's default slide-down */
+        .vms-modal.fade .modal-dialog {
+            transform: scale(0.9);
+            opacity: 0;
+            transition: transform 0.25s cubic-bezier(0.18, 1.24, 0.4, 1), opacity 0.2s ease-out;
+        }
+        .vms-modal.show .modal-dialog {
+            transform: scale(1);
+            opacity: 1;
         }
         .vms-modal .vms-modal-close {
             position: absolute;
@@ -776,7 +786,7 @@
         </footer>
     </div>
 
-    {{-- Keep toast notifications clear of the navbar so they never block its links --}}
+    {{-- Sets --toast-top for the page-transition skeleton layout (kept below the navbar) --}}
     <script>
         function vmsSetToastTop() {
             const header = document.getElementById('app-topbar-stats') || document.getElementById('app-topbar-nav');
