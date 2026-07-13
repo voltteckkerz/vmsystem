@@ -1,6 +1,8 @@
 @extends('layouts.app')
 
 @section('content')
+{{-- flatpickr CSS must load BEFORE our <style> so our overrides win --}}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
 <style>
     body {
         background-image: url('{{ asset(str_replace(' ', '%20', 'images/login background.jpg')) }}?v={{ filemtime(public_path('images/login background.jpg')) }}');
@@ -78,6 +80,121 @@
     /* Tables scroll sideways inside the glass card instead of breaking the page */
     .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
+    /* ===== ROUND-TRIP DATE RANGE PILL ===== */
+    .date-range-pill {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        padding: 6px 14px;
+        border: 1px solid #d6d9e0;
+        border-radius: 12px;
+        background: #fff;
+        cursor: pointer;
+        transition: border-color 0.18s, box-shadow 0.18s;
+    }
+    .date-range-pill:hover,
+    .date-range-pill.picker-open {
+        border-color: #16181d;
+        box-shadow: 0 0 0 3px rgba(22,24,29,0.12);
+    }
+    .date-range-side { display: flex; flex-direction: column; }
+    .date-range-value {
+        font-weight: 600;
+        font-size: 0.92rem;
+        color: #16181d;
+        white-space: nowrap;
+    }
+    /* invisible input that flatpickr attaches to */
+    .date-range-anchor {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        border: 0;
+        pointer-events: none;
+    }
+    .date-range-caption {
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #9aa0ab;
+        line-height: 1;
+        margin-bottom: 2px;
+    }
+    .date-range-arrow { color: #9aa0ab; font-size: 1.05rem; }
+    .date-range-reset {
+        border: 0;
+        background: transparent;
+        padding: 0 0 0 4px;
+        color: #c3c8d1;
+        font-size: 1.05rem;
+        cursor: pointer;
+        line-height: 1;
+        transition: color 0.18s;
+    }
+    .date-range-reset:hover { color: #dc3545; }
+
+    /* ===== FLATPICKR POPUP — match the app's look ===== */
+    .flatpickr-calendar {
+        border-radius: 16px;
+        border: 1px solid rgba(255,255,255,0.65);
+        box-shadow: 0 12px 40px rgba(16,24,40,0.22);
+    }
+    .flatpickr-day.selected,
+    .flatpickr-day.startRange,
+    .flatpickr-day.endRange {
+        background: #16181d;
+        border-color: #16181d;
+    }
+    .flatpickr-day.selected:hover,
+    .flatpickr-day.startRange:hover,
+    .flatpickr-day.endRange:hover {
+        background: #16181d;
+        border-color: #16181d;
+    }
+    .flatpickr-day.inRange {
+        background: #e8eaef;
+        border-color: #e8eaef;
+        box-shadow: -5px 0 0 #e8eaef, 5px 0 0 #e8eaef;
+    }
+    .flatpickr-day.startRange.selected,
+    .flatpickr-day.startRange,
+    .flatpickr-day.endRange {
+        box-shadow: none;
+    }
+    .flatpickr-day.today { border-color: #16181d; }
+    /* Reset / Done footer inside the popup */
+    .fp-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 14px;
+        margin-top: 4px;
+        border-top: 1px solid #e8eaef;
+    }
+    .fp-footer .fp-reset {
+        border: 0;
+        background: transparent;
+        color: #4a6cf7;
+        font-weight: 600;
+        font-size: 0.88rem;
+        cursor: pointer;
+    }
+    .fp-footer .fp-done {
+        border: 0;
+        border-radius: 999px;
+        padding: 6px 22px;
+        background: #16181d;
+        color: #fff;
+        font-weight: 600;
+        font-size: 0.88rem;
+        cursor: pointer;
+    }
+    .fp-footer .fp-done:hover { filter: brightness(1.3); }
+
     /* ===== PHONE LAYOUT ===== */
     @media (max-width: 767.98px) {
         /* Tabs: split 50/50 across the screen */
@@ -95,6 +212,9 @@
         #filter-form > div { width: 100%; }
         #filter-form .form-control { width: 100%; }
         #filter-form button[type="submit"] { width: 100%; }
+        /* Date pill: stretch across, halves share the row evenly */
+        .date-range-pill { display: flex; width: 100%; }
+        .date-range-side { flex: 1; align-items: center; }
         /* Print buttons: full width, stacked */
         #filter-form .ms-auto {
             margin-left: 0 !important;
@@ -138,12 +258,24 @@
         <div class="card-body">
             <form method="GET" action="{{ route('report.index') }}" class="d-flex align-items-end gap-3 flex-wrap w-100" id="filter-form">
                 <div>
-                    <label class="form-label text-muted"><b>From Date</b></label>
-                    <input type="date" class="form-control" name="from_date" value="{{ $from_date }}">
-                </div>
-                <div>
-                    <label class="form-label text-muted"><b>To Date</b></label>
-                    <input type="date" class="form-control" name="to_date" value="{{ $to_date }}">
+                    <label class="form-label text-muted"><b>Date Range</b></label>
+                    <div class="date-range-pill" id="dateRangePill">
+                        <div class="date-range-side">
+                            <span class="date-range-caption">From</span>
+                            <span class="date-range-value" id="fromDisplay">{{ \Carbon\Carbon::parse($from_date)->format('D, j M') }}</span>
+                        </div>
+                        <i class="bi bi-arrow-right date-range-arrow"></i>
+                        <div class="date-range-side">
+                            <span class="date-range-caption">To</span>
+                            <span class="date-range-value" id="toDisplay">{{ \Carbon\Carbon::parse($to_date)->format('D, j M') }}</span>
+                        </div>
+                        <button type="button" class="date-range-reset" id="resetDates" title="Reset to today">
+                            <i class="bi bi-x-circle-fill"></i>
+                        </button>
+                        <input type="text" id="rangePicker" class="date-range-anchor" tabindex="-1" aria-hidden="true">
+                        <input type="hidden" name="from_date" id="fromDate" value="{{ $from_date }}">
+                        <input type="hidden" name="to_date" id="toDate" value="{{ $to_date }}">
+                    </div>
                 </div>
                 <div>
                     <label class="form-label text-muted"><b>Search Name</b></label>
@@ -279,6 +411,7 @@
     </div>{{-- end tab-content --}}
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
 <script>
     function switchTab(tab) {
         document.getElementById('activeTab').value = tab;
@@ -297,5 +430,73 @@
             attendanceBtn.classList.add('active-attendance');
         }
     }
+
+    // ===== Round-trip popup calendar =====
+    const fromDate    = document.getElementById('fromDate');
+    const toDate      = document.getElementById('toDate');
+    const fromDisplay = document.getElementById('fromDisplay');
+    const toDisplay   = document.getElementById('toDisplay');
+    const pill        = document.getElementById('dateRangePill');
+
+    const fmtDisplay = d => d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+    const fmtValue   = d => flatpickr.formatDate(d, 'Y-m-d');
+
+    // Reset: snap the selection back to today (no page reload —
+    // the table updates when the user presses Filter)
+    function resetDates() {
+        const today = new Date();
+        fp.setDate([today, today], false);
+        fp.jumpToDate(today);
+        fromDate.value = fmtValue(today);
+        toDate.value = fmtValue(today);
+        fromDisplay.textContent = fmtDisplay(today);
+        toDisplay.textContent = fmtDisplay(today);
+    }
+
+    const fp = flatpickr('#rangePicker', {
+        mode: 'range',
+        closeOnSelect: false,
+        showMonths: window.matchMedia('(max-width: 767.98px)').matches ? 1 : 2,
+        defaultDate: [fromDate.value, toDate.value],
+        disableMobile: true,
+        positionElement: pill,
+        onReady(_, __, instance) {
+            const footer = document.createElement('div');
+            footer.className = 'fp-footer';
+            footer.innerHTML = '<button type="button" class="fp-reset">Reset</button>'
+                             + '<button type="button" class="fp-done">Done</button>';
+            footer.querySelector('.fp-reset').addEventListener('click', resetDates);
+            footer.querySelector('.fp-done').addEventListener('click', () => instance.close());
+            instance.calendarContainer.appendChild(footer);
+        },
+        onOpen()  { pill.classList.add('picker-open'); },
+        onChange(dates) {
+            if (dates.length >= 1) {
+                fromDate.value = fmtValue(dates[0]);
+                fromDisplay.textContent = fmtDisplay(dates[0]);
+            }
+            if (dates.length === 2) {
+                toDate.value = fmtValue(dates[1]);
+                toDisplay.textContent = fmtDisplay(dates[1]);
+            }
+        },
+        onClose(dates, _, instance) {
+            pill.classList.remove('picker-open');
+            // Picked only one day, then closed: treat it as a same-day range
+            if (dates.length === 1) {
+                toDate.value = fmtValue(dates[0]);
+                toDisplay.textContent = fmtDisplay(dates[0]);
+                instance.setDate([dates[0], dates[0]], false);
+            }
+        }
+    });
+
+    // Clicking anywhere on the pill (either date) opens the popup
+    pill.addEventListener('click', e => {
+        if (e.target.closest('.date-range-reset')) return;
+        fp.open();
+    });
+
+    document.getElementById('resetDates').addEventListener('click', resetDates);
 </script>
 @endsection

@@ -407,19 +407,19 @@
             scrollbar-gutter: stable;
         }
         body {
-            display: flex;
-            flex-direction: column;
             background-image: url('{{ asset(str_replace(' ', '%20', 'images/login background.jpg')) }}?v={{ filemtime(public_path('images/login background.jpg')) }}');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
             background-attachment: fixed;
         }
+        /* #app alone handles the sticky footer (min-height + main flex:1).
+           Don't make body a flex parent of #app: a flex:1 #app can collapse
+           to one viewport tall, which caps position:sticky at one screen. */
         #app {
             display: flex;
             flex-direction: column;
             min-height: 100vh;
-            flex: 1;
         }
         main {
             flex: 1;
@@ -434,6 +434,14 @@
         #app-topbar-nav, #app-topbar-stats {
             position: relative;
             z-index: 1000000;
+        }
+        /* Whole top bar (nav + date/stats strip) follows the page while scrolling.
+           flow-root keeps the strips' own margins inside the sticky box. */
+        #app-topbar-sticky {
+            position: sticky;
+            top: 0;
+            z-index: 1000000;
+            display: flow-root;
         }
         #app-topbar-nav {
             background: rgba(255,255,255,0.86);
@@ -664,6 +672,7 @@
             ['name' => 'Reports',    'route' => 'report.index',     'icon' => 'bi-file-earmark-text-fill'],
         ];
         ?>
+        <div id="app-topbar-sticky">
         <div id="app-topbar-nav" class="container navbar-expand-md d-flex align-items-center flex-wrap py-2">
             <button class="vms-burger" id="vms-burger" type="button" aria-label="Open menu">
                 <i class="bi bi-list"></i>
@@ -712,6 +721,34 @@
             </div>
         </div>
 
+        {{-- Stats badges --}}
+        @auth
+        <div id="app-topbar-stats" class="container">
+            <div class="navbar-stats-capsule">
+                <span class="nav-stat-badge badge-datetime">
+                    <i class="bi bi-calendar3"></i>
+                    <span id="nav-date"></span>
+                </span>
+                <div class="nav-stat-divider"></div>
+                <span class="nav-stat-badge badge-datetime">
+                    <i class="bi bi-clock"></i>
+                    <span id="nav-time"></span>
+                </span>
+                <div class="nav-stat-divider"></div>
+                <span class="nav-stat-badge badge-attendance">
+                    <i class="bi bi-person-check-fill"></i>
+                    Attendance: {{ $navTodayAttendance ?? 0 }}
+                </span>
+                <div class="nav-stat-divider"></div>
+                <span class="nav-stat-badge badge-visitor">
+                    <i class="bi bi-people-fill"></i>
+                    Visitors: {{ $navTodayVisitors ?? 0 }}
+                </span>
+            </div>
+        </div>
+        @endauth
+        </div>{{-- end app-topbar-sticky --}}
+
         {{-- Mobile slide-in navigation drawer --}}
         <div class="vms-drawer" id="vms-drawer" aria-hidden="true">
             <div class="vms-drawer-head">
@@ -749,33 +786,6 @@
             </div>
             @endauth
         </div>
-
-        {{-- Stats badges --}}
-        @auth
-        <div id="app-topbar-stats" class="container">
-            <div class="navbar-stats-capsule">
-                <span class="nav-stat-badge badge-datetime">
-                    <i class="bi bi-calendar3"></i>
-                    <span id="nav-date"></span>
-                </span>
-                <div class="nav-stat-divider"></div>
-                <span class="nav-stat-badge badge-datetime">
-                    <i class="bi bi-clock"></i>
-                    <span id="nav-time"></span>
-                </span>
-                <div class="nav-stat-divider"></div>
-                <span class="nav-stat-badge badge-attendance">
-                    <i class="bi bi-person-check-fill"></i>
-                    Attendance: {{ $navTodayAttendance ?? 0 }}
-                </span>
-                <div class="nav-stat-divider"></div>
-                <span class="nav-stat-badge badge-visitor">
-                    <i class="bi bi-people-fill"></i>
-                    Visitors: {{ $navTodayVisitors ?? 0 }}
-                </span>
-            </div>
-        </div>
-        @endauth
 
         <main class="py-4">
             @yield('content')
